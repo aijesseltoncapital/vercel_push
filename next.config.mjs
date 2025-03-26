@@ -24,8 +24,8 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/index/:path*',
-        destination: '/api/index/:path*',
+        source: '/api/:path*',
+        destination: '/api/:path*',
       },
     ]
   }
