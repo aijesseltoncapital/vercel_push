@@ -218,6 +218,3 @@ def stripe_webhook():
         # Handle end of 12-month subscription
 
     return 'Success', 200
-
-if __name__ == '__main__':
-    app.run(port=4242)
