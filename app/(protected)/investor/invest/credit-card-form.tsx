@@ -90,7 +90,7 @@ function CreditCardFormContent({
       // Determine payment method based on installment status
       if (isInstallment) {
         // Create Stripe Product and Price for the subscription
-        const productResponse = await fetch('http://localhost:4242/api/create-subscription-product', {
+        const productResponse = await fetch('http://localhost:5000/api/create-subscription-product', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -106,7 +106,7 @@ function CreditCardFormContent({
         const { productId, priceId } = await productResponse.json()
 
         // Create Customer and Subscription
-        const subscriptionResponse = await fetch('http://localhost:4242/api/create-subscription', {
+        const subscriptionResponse = await fetch('http://localhost:5000/api/create-subscription', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -146,7 +146,7 @@ function CreditCardFormContent({
         }
       } else {
         // Existing one-time payment logic
-        const response = await fetch('http://localhost:4242/api/create-payment-intent', {
+        const response = await fetch('http://localhost:5000/api/create-payment-intent', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
