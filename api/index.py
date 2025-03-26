@@ -10,7 +10,7 @@ CORS(app)
 # Set your Stripe secret key
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
-@app.route('/api/index/create-subscription-product', methods=['POST'])
+@app.route('/api/create-subscription-product', methods=['POST'])
 def create_subscription_product():
     try:
         data = request.get_json()
@@ -59,7 +59,7 @@ def create_subscription_product():
             'error': 'An unexpected error occurred'
         }), 500
 
-@app.route('/api/index/create-subscription', methods=['POST'])
+@app.route('/api/create-subscription', methods=['POST'])
 def create_subscription():
     try:
         data = request.get_json()
@@ -141,7 +141,7 @@ def create_subscription():
         }), 500
 
 # Existing payment intent route remains the same
-@app.route('/api/index/create-payment-intent', methods=['POST'])
+@app.route('/api/create-payment-intent', methods=['POST'])
 def create_payment_intent():
     try:
         data = request.get_json()
