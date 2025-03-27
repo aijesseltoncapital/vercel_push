@@ -80,7 +80,7 @@ export default function ProjectPage() {
       {/* Hero Section - Kickstarter Style */}
       <div className="relative w-full h-[400px] rounded-lg overflow-hidden mb-8 mt-6">
         <Image
-          src="/placeholder.svg?height=800&width=1600"
+          src="https://postimg.cc/FfzYQQ8f"
           alt="Tech Startup XYZ"
           fill
           className="object-cover"
