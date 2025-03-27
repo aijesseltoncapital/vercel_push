@@ -159,3 +159,156 @@ header.sticky {
   margin-top: -1px; /* Removes the gap between header and tabs */
 }
 
+/* Add smooth scrolling behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Improve spacing for section headings */
+.section-heading {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* Enhance expandable sections */
+.expandable-section {
+  transition: all 0.2s ease-in-out;
+}
+
+.expandable-section:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure proper spacing in the overview tab */
+.overview-content {
+  padding-bottom: 2rem;
+}
+
+/* Add scroll padding to account for fixed header */
+html {
+  scroll-padding-top: 6rem;
+}
+
+/* Hide scrollbars for mobile navigation */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Styles for the sticky navigation */
+.sticky-nav {
+  position: sticky;
+  top: 120px;
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  z-index: 10;
+  margin-top: 0;
+}
+
+/* Sidebar container styles */
+.sidebar-container {
+  height: fit-content;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Vertical navigation styling */
+.sticky-nav nav {
+  border-radius: 0.5rem;
+  background-color: hsl(var(--background));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Mobile horizontal navigation styling */
+@media (max-width: 768px) {
+  .sticky-nav {
+    position: sticky;
+    top: 104px;
+    z-index: 30;
+    background-color: hsl(var(--background));
+    width: 100%;
+  }
+
+  /* Ensure the horizontal nav container stays in view */
+  .md\:hidden.sticky {
+    position: sticky;
+    top: 104px;
+    z-index: 30;
+    background-color: hsl(var(--background));
+    width: 100%;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .sticky-nav nav.flex-row {
+    display: flex;
+    flex-direction: row;
+    padding: 0.5rem;
+    gap: 0.5rem;
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .sticky-nav nav.flex-row button {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+/* Ensure the navigation is only visible when the Overview tab is active */
+[data-state="inactive"] .sticky-nav {
+  display: none;
+}
+
+/* Improve the appearance of the active section in the navigation */
+[data-nav-section].active,
+[data-nav-section][data-active="true"] {
+  background-color: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  font-weight: 500;
+}
+
+/* Add a smooth transition for the active state */
+[data-nav-section] {
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* Enhanced sticky navigation for overview tab */
+@media (max-width: 768px) {
+  .sticky-nav {
+    position: sticky;
+    top: 104px;
+    z-index: 20;
+    background-color: hsl(var(--background));
+  }
+
+  /* Ensure the horizontal nav stays in view */
+  .md\:hidden.sticky {
+    position: sticky;
+    top: 104px;
+    z-index: 20;
+    background-color: hsl(var(--background));
+    border-bottom: 1px solid hsl(var(--border));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* Ensure the tabs container is also sticky */
+.tabs-container .sticky {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background-color: hsl(var(--background));
+}
+
+/* Add this to ensure proper scroll padding with the sticky nav */
+html {
+  scroll-padding-top: 160px; /* Increased to account for both header and nav */
+}
+

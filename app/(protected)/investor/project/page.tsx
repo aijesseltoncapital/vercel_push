@@ -2,14 +2,18 @@
 
 import { useAuth } from "@/lib/auth-provider"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { PaymentSchedule } from "../invest/payment-schedule"
 import Link from "next/link"
-import { FundraisingFormatCard } from "@/components/fundraising-format-card"
-import { KycStatusIndicator } from "@/components/kyc-status-indicator"
 import { DocumentViewer } from "@/components/document-viewer"
+import { ExpandableSection } from "./components/expandable-section"
+import { FaqSection } from "./components/faq-section"
+import { AlertCircle } from "lucide-react"
+import Image from "next/image"
+import { FundraisingFormatCard } from "@/components/fundraising-format-card"
+import { OverviewSidebar } from "./components/overview-sidebar"
 
 export default function ProjectPage() {
   const { user } = useAuth()
@@ -23,6 +27,8 @@ export default function ProjectPage() {
     projectProgress: 45, // percentage of funding goal reached
     totalRaised: 450000,
     goal: 1000000,
+    backers: 18,
+    daysLeft: 42,
   }
 
   // Mock data for project documents
@@ -70,157 +76,131 @@ export default function ProjectPage() {
   ]
 
   return (
-    <div className="flex-1 p-4 md:p-8 pt-6 container mx-auto max-w-7xl">
-      {/* Project title and invest button */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Tech Startup XYZ</h2>
-        <Link href="/investor/invest">
-          <Button>Invest Now</Button>
-        </Link>
+    <div className="flex-1 container mx-auto max-w-7xl px-4 pb-12">
+      {/* Hero Section - Kickstarter Style */}
+      <div className="relative w-full h-[400px] rounded-lg overflow-hidden mb-8 mt-6">
+        <Image
+          src="/placeholder.svg?height=800&width=1600"
+          alt="Tech Startup XYZ"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+          <div className="p-8 text-white w-full">
+            <h1 className="text-4xl font-bold mb-2">Tech Startup XYZ</h1>
+            <p className="text-lg opacity-90 max-w-2xl">
+              Cutting-edge technology that will transform how businesses operate through AI and machine learning.
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Top row with three cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
-        {/* Ready to Invest card */}
-        <Card className="h-full flex flex-col">
-          <CardHeader className="pb-2">
-            <CardTitle>Ready to Invest?</CardTitle>
-            <CardDescription>Learn about the opportunity and start your investment journey</CardDescription>
-          </CardHeader>
-          <CardContent className="pb-4 flex-grow">
-            <div className="flex flex-col space-y-4">
-              <div className="flex justify-between items-center">
-                <p className="text-sm font-medium">KYC Status:</p>
-                <KycStatusIndicator status={user?.kycStatus || "not_submitted"} />
+      {/* Main content grid - Kickstarter Style */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Main content area - 8 columns */}
+        <div className="lg:col-span-8">
+          {/* Project stats bar - Kickstarter Style */}
+          <div className="mb-8">
+            <div className="mb-4">
+              <Progress value={investmentData.projectProgress} className="h-3 rounded-full" />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="flex flex-col">
+                <span className="text-3xl font-bold">${investmentData.totalRaised.toLocaleString()}</span>
+                <span className="text-muted-foreground text-sm">of ${investmentData.goal.toLocaleString()} goal</span>
               </div>
-              <p className="text-muted-foreground">
-                {user?.kycStatus === "approved"
-                  ? "Your KYC verification is complete. You can now invest in this opportunity."
-                  : user?.kycStatus === "pending"
+              <div className="flex flex-col">
+                <span className="text-3xl font-bold">{investmentData.backers}</span>
+                <span className="text-muted-foreground text-sm">investors</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-3xl font-bold">{investmentData.daysLeft}</span>
+                <span className="text-muted-foreground text-sm">days to go</span>
+              </div>
+            </div>
+          </div>
+
+          {/* KYC Status Alert - Styled like Kickstarter's alerts */}
+          {user?.kycStatus !== "approved" && (
+            <div className="mb-8 bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-medium text-amber-800">KYC Verification Required</h3>
+                <p className="text-sm text-amber-700 mt-1">
+                  {user?.kycStatus === "pending"
                     ? "Your KYC verification is pending. You'll be notified once it's approved."
                     : user?.kycStatus === "rejected"
                       ? "Your KYC verification was rejected. Please visit the KYC page to resubmit."
                       : "You need to complete KYC verification before investing. Please visit the KYC page to get started."}
-              </p>
-            </div>
-          </CardContent>
-          <CardFooter>
-            {user?.kycStatus === "approved" ? (
-              <Link href="/investor/invest">
-                <Button variant="outline">Start Investing</Button>
-              </Link>
-            ) : (
-              <Link href="/investor/kyc">
-                <Button variant="outline">
-                  {user?.kycStatus === "not_submitted" && "Complete KYC"}
-                  {user?.kycStatus === "pending" && "Check KYC Status"}
-                  {user?.kycStatus === "rejected" && "Resubmit KYC"}
-                </Button>
-              </Link>
-            )}
-          </CardFooter>
-        </Card>
-
-        {/* Fundraising Progress card */}
-        <Card className="h-full flex flex-col">
-          <CardHeader className="pb-2">
-            <CardTitle>Fundraising Progress</CardTitle>
-            <CardDescription>Current status of the funding round</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-grow">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Total Raised</span>
-                <span className="text-sm font-medium">
-                  ${investmentData.totalRaised.toLocaleString()} / ${investmentData.goal.toLocaleString()}
-                </span>
-              </div>
-              <Progress value={investmentData.projectProgress} className="h-2" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Important Dates card */}
-        <Card className="h-full flex flex-col">
-          <CardHeader className="pb-2">
-            <CardTitle>Important Dates</CardTitle>
-            <CardDescription>Key dates for this investment round</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-grow">
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-sm font-medium">Round Opens</span>
-                <span className="text-sm text-muted-foreground">May 1, 2023</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm font-medium">Round Closes</span>
-                <span className="text-sm text-muted-foreground">July 31, 2023</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm font-medium">Expected Close Date</span>
-                <span className="text-sm text-muted-foreground">August 15, 2023</span>
+                </p>
+                <div className="mt-3">
+                  <Link href="/investor/kyc">
+                    <Button variant="outline" size="sm" className="bg-white">
+                      {user?.kycStatus === "not_submitted" && "Complete KYC"}
+                      {user?.kycStatus === "pending" && "Check KYC Status"}
+                      {user?.kycStatus === "rejected" && "Resubmit KYC"}
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
 
-      {/* Main content area with tabs and sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[calc(100vh-240px)]">
-        {/* Main content - 8 columns */}
-        <div className="lg:col-span-8 w-full flex flex-col">
-          <Tabs defaultValue="presentation" className="w-full space-y-6 flex flex-col">
-            <div className="sticky top-16 z-30 bg-background pb-1 pt-2">
-              <TabsList className="w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1 h-auto p-1 bg-muted/30">
-                <TabsTrigger value="presentation" className="py-2 px-3 text-center">
-                  Presentation
-                </TabsTrigger>
-                <TabsTrigger value="overview" className="py-2 px-3 text-center">
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger value="team" className="py-2 px-3 text-center">
-                  Team
-                </TabsTrigger>
-                <TabsTrigger value="financials" className="py-2 px-3 text-center">
-                  Financials
-                </TabsTrigger>
-                <TabsTrigger value="terms" className="py-2 px-3 text-center">
-                  Terms
-                </TabsTrigger>
-                <TabsTrigger value="updates" className="py-2 px-3 text-center">
-                  Updates
-                </TabsTrigger>
-              </TabsList>
-            </div>
+          {/* Tabs - Kickstarter Style */}
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="w-full grid grid-cols-4 h-auto p-0 bg-transparent border-b rounded-none mb-6 sticky top-[64px] z-40 bg-background">
+              <TabsTrigger
+                value="overview"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none bg-transparent h-12"
+              >
+                Overview
+              </TabsTrigger>
+              <TabsTrigger
+                value="faq"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none bg-transparent h-12"
+              >
+                FAQ
+              </TabsTrigger>
+              <TabsTrigger
+                value="terms"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none bg-transparent h-12"
+              >
+                Terms
+              </TabsTrigger>
+              <TabsTrigger
+                value="updates"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none bg-transparent h-12"
+              >
+                Updates
+              </TabsTrigger>
+            </TabsList>
 
-            <TabsContent
-              value="presentation"
-              className="space-y-4 w-full overflow-y-auto tabs-content-scrollable"
-              style={{ maxHeight: "calc(100vh - 180px)" }}
-            >
-              <Card className="w-full">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-2xl">Tech Startup XYZ Presentation</CardTitle>
-                  <CardDescription>Investor deck and company overview</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Slide 1: Introduction */}
-                  <div className="border rounded-lg p-6 bg-muted/30">
-                    <h3 className="text-xl font-semibold text-center mb-4">Transforming Business Intelligence</h3>
-                    <p className="text-center mb-4">
-                      We're building the next generation of AI-powered analytics to help businesses make better
-                      decisions.
-                    </p>
-                    <div className="flex justify-center">
-                      <div className="w-3/4 h-48 bg-muted rounded-lg flex items-center justify-center">
-                        [Company Logo & Vision Statement]
+            <TabsContent value="overview" className="mt-0">
+              <div className="flex flex-col md:flex-row md:gap-6">
+                {/* Sidebar navigation - Kickstarter style */}
+                <div className="hidden md:block md:w-1/4">
+                  <OverviewSidebar />
+                </div>
+
+                {/* Main content */}
+                <div className="md:w-3/4 space-y-6">
+                  <ExpandableSection title="About Us" sectionId="about">
+                    <div className="space-y-4">
+                      <p className="text-muted-foreground">
+                        Tech Startup XYZ is developing cutting-edge technology that will transform how businesses
+                        operate. Our platform leverages artificial intelligence and machine learning to provide
+                        unprecedented insights and automation capabilities.
+                      </p>
+                      <div className="flex justify-center">
+                        <div className="w-3/4 h-48 bg-muted rounded-lg flex items-center justify-center">
+                          [Company Logo & Vision Statement]
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </ExpandableSection>
 
-                  {/* Slide 2: The Problem */}
-                  <div className="border rounded-lg p-6 bg-muted/30">
-                    <h3 className="text-xl font-semibold text-center mb-4">The Problem</h3>
+                  <ExpandableSection title="Problem" sectionId="problem">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <p>
@@ -241,11 +221,9 @@ export default function ProjectPage() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </ExpandableSection>
 
-                  {/* Slide 3: Our Solution */}
-                  <div className="border rounded-lg p-6 bg-muted/30">
-                    <h3 className="text-xl font-semibold text-center mb-4">Our Solution</h3>
+                  <ExpandableSection title="Solution" sectionId="solution">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="flex items-center justify-center">
                         <div className="w-full h-40 bg-muted rounded-lg flex items-center justify-center">
@@ -265,59 +243,9 @@ export default function ProjectPage() {
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </ExpandableSection>
 
-                  {/* Slide 4: Market Opportunity */}
-                  <div className="border rounded-lg p-6 bg-muted/30">
-                    <h3 className="text-xl font-semibold text-center mb-4">Market Opportunity</h3>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <p>
-                          <strong>$43B</strong> global business intelligence market by 2028
-                        </p>
-                        <p>
-                          <strong>8.7%</strong> CAGR in the analytics sector
-                        </p>
-                        <p>
-                          <strong>$5.2B</strong> addressable market for our specific solution
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-center">
-                        <div className="w-full h-40 bg-muted rounded-lg flex items-center justify-center">
-                          [Market Growth Chart]
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Slide 5: Competitive Advantage */}
-                  <div className="border rounded-lg p-6 bg-muted/30">
-                    <h3 className="text-xl font-semibold text-center mb-4">Our Competitive Advantage</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="border rounded p-4 text-center">
-                        <h4 className="font-medium mb-2">Proprietary AI</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Our algorithms deliver 3x more accurate insights than competitors
-                        </p>
-                      </div>
-                      <div className="border rounded p-4 text-center">
-                        <h4 className="font-medium mb-2">Integration Speed</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Deploy in days, not months, with our no-code connectors
-                        </p>
-                      </div>
-                      <div className="border rounded p-4 text-center">
-                        <h4 className="font-medium mb-2">Scalable Architecture</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Built to handle enterprise-scale data with minimal overhead
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Slide 6: Traction */}
-                  <div className="border rounded-lg p-6 bg-muted/30">
-                    <h3 className="text-xl font-semibold text-center mb-4">Our Traction</h3>
+                  <ExpandableSection title="Traction" sectionId="traction">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                       <div>
                         <div className="text-2xl font-bold">42</div>
@@ -336,290 +264,252 @@ export default function ProjectPage() {
                         <div className="text-sm text-muted-foreground">Customer Retention</div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </ExpandableSection>
 
-            <TabsContent
-              value="overview"
-              className="space-y-4 w-full overflow-y-auto tabs-content-scrollable"
-              style={{ maxHeight: "calc(100vh - 180px)" }}
-            >
-              {/* Existing overview content */}
-              <Card className="w-full">
-                <CardHeader className="pb-4">
-                  <CardTitle>Tech Startup XYZ</CardTitle>
-                  <CardDescription>Revolutionizing the future of technology</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-medium">About the Company</h3>
-                    <p className="text-muted-foreground mt-2">
-                      Tech Startup XYZ is developing cutting-edge technology that will transform how businesses operate.
-                      Our platform leverages artificial intelligence and machine learning to provide unprecedented
-                      insights and automation capabilities.
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-medium">The Problem</h3>
-                    <p className="text-muted-foreground mt-2">
-                      Businesses today struggle with inefficient processes and lack of actionable data. Current
-                      solutions are fragmented, expensive, and difficult to implement, leaving many companies unable to
-                      fully leverage their data and optimize operations.
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-medium">Our Solution</h3>
-                    <p className="text-muted-foreground mt-2">
-                      Our platform provides an integrated solution that seamlessly connects with existing systems,
-                      automatically analyzes data, and provides actionable insights. With our proprietary AI algorithms,
-                      businesses can automate routine tasks, identify optimization opportunities, and make data-driven
-                      decisions.
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-medium">Market Opportunity</h3>
-                    <p className="text-muted-foreground mt-2">
-                      The global market for business intelligence and analytics software is projected to reach $43.03
-                      billion by 2028, growing at a CAGR of 8.7%. Our addressable market within this space is estimated
-                      at $5.2 billion, providing significant room for growth and expansion.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Add Document Viewer to Overview tab */}
-              <DocumentViewer
-                documents={projectDocuments}
-                title="Project Documents"
-                description="Access all project-related documents and materials"
-              />
-            </TabsContent>
-
-            <TabsContent
-              value="team"
-              className="space-y-4 w-full overflow-y-auto tabs-content-scrollable"
-              style={{ maxHeight: "calc(100vh - 180px)" }}
-            >
-              {/* Existing team content */}
-              <Card className="w-full">
-                <CardHeader className="pb-4">
-                  <CardTitle>Leadership Team</CardTitle>
-                  <CardDescription>Meet the visionaries behind Tech Startup XYZ</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
-                      <span className="text-2xl font-bold">JD</span>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-medium">Jane Doe</h3>
-                      <p className="text-sm text-muted-foreground">CEO & Co-Founder</p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Former VP of Product at Tech Giant, with 15+ years of experience in the industry. MBA from
-                        Stanford University.
+                  <ExpandableSection title="Customers" sectionId="customers">
+                    <div className="space-y-4">
+                      <p className="text-muted-foreground">
+                        Our platform is trusted by leading companies across various industries:
                       </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
-                      <span className="text-2xl font-bold">JS</span>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-medium">John Smith</h3>
-                      <p className="text-sm text-muted-foreground">CTO & Co-Founder</p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Previously led engineering teams at Top Tech Co. Expert in AI and machine learning. PhD in
-                        Computer Science from MIT.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
-                      <span className="text-2xl font-bold">AJ</span>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-medium">Alex Johnson</h3>
-                      <p className="text-sm text-muted-foreground">CFO</p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        20+ years of financial experience in tech startups and venture capital. Previously CFO at
-                        Successful Startup Inc. and Partner at VC Firm.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent
-              value="financials"
-              className="space-y-4 w-full overflow-y-auto tabs-content-scrollable"
-              style={{ maxHeight: "calc(100vh - 180px)" }}
-            >
-              {/* Financial projections content only */}
-              <Card className="w-full">
-                <CardHeader className="pb-4">
-                  <CardTitle>Financial Projections</CardTitle>
-                  <CardDescription>
-                    3-year financial outlook based on current traction and market analysis
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-medium flex items-center">
-                      <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                      Financial Projections
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1 mb-4">
-                      Our 3-year financial projections based on current traction and market analysis.
-                    </p>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Revenue & Growth Projections */}
-                      <div>
-                        <h4 className="text-sm font-medium mb-2">Revenue Projections</h4>
-                        <div className="border rounded-lg overflow-hidden">
-                          <table className="w-full">
-                            <thead className="bg-muted/50">
-                              <tr>
-                                <th className="text-left p-2 text-sm font-medium">Metric</th>
-                                <th className="text-right p-2 text-sm font-medium">Year 1</th>
-                                <th className="text-right p-2 text-sm font-medium">Year 2</th>
-                                <th className="text-right p-2 text-sm font-medium">Year 3</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y">
-                              <tr>
-                                <td className="p-2 text-sm">Revenue</td>
-                                <td className="p-2 text-sm text-right">$2.5M</td>
-                                <td className="p-2 text-sm text-right">$6.8M</td>
-                                <td className="p-2 text-sm text-right">$15.2M</td>
-                              </tr>
-                              <tr>
-                                <td className="p-2 text-sm">YoY Growth</td>
-                                <td className="p-2 text-sm text-right">-</td>
-                                <td className="p-2 text-sm text-right">172%</td>
-                                <td className="p-2 text-sm text-right">124%</td>
-                              </tr>
-                              <tr>
-                                <td className="p-2 text-sm">Gross Margin</td>
-                                <td className="p-2 text-sm text-right">68%</td>
-                                <td className="p-2 text-sm text-right">72%</td>
-                                <td className="p-2 text-sm text-right">75%</td>
-                              </tr>
-                              <tr>
-                                <td className="p-2 text-sm">EBITDA</td>
-                                <td className="p-2 text-sm text-right">-$1.8M</td>
-                                <td className="p-2 text-sm text-right">-$0.5M</td>
-                                <td className="p-2 text-sm text-right">$3.2M</td>
-                              </tr>
-                              <tr>
-                                <td className="p-2 text-sm">EBITDA Margin</td>
-                                <td className="p-2 text-sm text-right">-72%</td>
-                                <td className="p-2 text-sm text-right">-7%</td>
-                                <td className="p-2 text-sm text-right">21%</td>
-                              </tr>
-                            </tbody>
-                          </table>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="h-20 bg-muted rounded-lg flex items-center justify-center">
+                          [Customer Logo 1]
                         </div>
+                        <div className="h-20 bg-muted rounded-lg flex items-center justify-center">
+                          [Customer Logo 2]
+                        </div>
+                        <div className="h-20 bg-muted rounded-lg flex items-center justify-center">
+                          [Customer Logo 3]
+                        </div>
+                        <div className="h-20 bg-muted rounded-lg flex items-center justify-center">
+                          [Customer Logo 4]
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="font-medium">Customer Testimonials:</p>
+                        <blockquote className="border-l-4 pl-4 italic text-muted-foreground">
+                          "Tech Startup XYZ has transformed how we analyze our business data, leading to a 30% increase
+                          in operational efficiency."
+                          <footer className="text-sm mt-1">— CTO, Enterprise Customer</footer>
+                        </blockquote>
+                      </div>
+                    </div>
+                  </ExpandableSection>
 
-                        <div className="h-48 bg-muted/50 rounded-lg mt-4 flex items-center justify-center">
-                          [Revenue Growth Chart]
+                  <ExpandableSection title="Strategic Goals" sectionId="goals">
+                    <div className="space-y-4">
+                      <p className="text-muted-foreground">Our strategic roadmap for the next 24 months:</p>
+                      <div className="space-y-4">
+                        <div className="border-l-2 border-primary pl-4">
+                          <h4 className="font-medium">Q3-Q4 2023</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Launch advanced analytics module and expand sales team to target enterprise customers.
+                          </p>
+                        </div>
+                        <div className="border-l-2 border-primary pl-4">
+                          <h4 className="font-medium">Q1-Q2 2024</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Release API ecosystem for third-party integrations and enter European market.
+                          </p>
+                        </div>
+                        <div className="border-l-2 border-primary pl-4">
+                          <h4 className="font-medium">Q3-Q4 2024</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Launch industry-specific solutions and prepare for Series A funding round.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </ExpandableSection>
+
+                  <ExpandableSection title="Team" sectionId="team">
+                    <div className="space-y-6">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
+                          <span className="text-2xl font-bold">JD</span>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-medium">Jane Doe</h3>
+                          <p className="text-sm text-muted-foreground">CEO & Co-Founder</p>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Former VP of Product at Tech Giant, with 15+ years of experience in the industry. MBA from
+                            Stanford University.
+                          </p>
                         </div>
                       </div>
 
-                      {/* Operational Projections */}
-                      <div>
-                        <h4 className="text-sm font-medium mb-2">Operational Projections</h4>
-                        <div className="border rounded-lg overflow-hidden">
-                          <table className="w-full">
-                            <thead className="bg-muted/50">
-                              <tr>
-                                <th className="text-left p-2 text-sm font-medium">Metric</th>
-                                <th className="text-right p-2 text-sm font-medium">Year 1</th>
-                                <th className="text-right p-2 text-sm font-medium">Year 2</th>
-                                <th className="text-right p-2 text-sm font-medium">Year 3</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y">
-                              <tr>
-                                <td className="p-2 text-sm">Customers</td>
-                                <td className="p-2 text-sm text-right">85</td>
-                                <td className="p-2 text-sm text-right">210</td>
-                                <td className="p-2 text-sm text-right">450</td>
-                              </tr>
-                              <tr>
-                                <td className="p-2 text-sm">ARR per Customer</td>
-                                <td className="p-2 text-sm text-right">$29,400</td>
-                                <td className="p-2 text-sm text-right">$32,400</td>
-                                <td className="p-2 text-sm text-right">$33,800</td>
-                              </tr>
-                              <tr>
-                                <td className="p-2 text-sm">CAC</td>
-                                <td className="p-2 text-sm text-right">$12,000</td>
-                                <td className="p-2 text-sm text-right">$10,500</td>
-                                <td className="p-2 text-sm text-right">$9,000</td>
-                              </tr>
-                              <tr>
-                                <td className="p-2 text-sm">CAC Payback (months)</td>
-                                <td className="p-2 text-sm text-right">14</td>
-                                <td className="p-2 text-sm text-right">11</td>
-                                <td className="p-2 text-sm text-right">9</td>
-                              </tr>
-                              <tr>
-                                <td className="p-2 text-sm">Headcount</td>
-                                <td className="p-2 text-sm text-right">28</td>
-                                <td className="p-2 text-sm text-right">42</td>
-                                <td className="p-2 text-sm text-right">65</td>
-                              </tr>
-                            </tbody>
-                          </table>
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
+                          <span className="text-2xl font-bold">JS</span>
                         </div>
+                        <div>
+                          <h3 className="text-lg font-medium">John Smith</h3>
+                          <p className="text-sm text-muted-foreground">CTO & Co-Founder</p>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Previously led engineering teams at Top Tech Co. Expert in AI and machine learning. PhD in
+                            Computer Science from MIT.
+                          </p>
+                        </div>
+                      </div>
 
-                        <h4 className="text-sm font-medium mt-4 mb-2">Key Projected KPIs</h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm">Net Revenue Retention</span>
-                            <span className="text-sm font-medium">115% → 125%</span>
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
+                          <span className="text-2xl font-bold">AJ</span>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-medium">Alex Johnson</h3>
+                          <p className="text-sm text-muted-foreground">CFO</p>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            20+ years of financial experience in tech startups and venture capital. Previously CFO at
+                            Successful Startup Inc. and Partner at VC Firm.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </ExpandableSection>
+
+                  <ExpandableSection title="Partnerships" sectionId="partnerships">
+                    <div className="space-y-4">
+                      <p className="text-muted-foreground">
+                        We've established strategic partnerships to accelerate our growth and enhance our product
+                        offerings:
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="border rounded-lg p-4">
+                          <h4 className="font-medium">Technology Partners</h4>
+                          <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                            <li>• Cloud Infrastructure Provider - Premium Partner</li>
+                            <li>• AI Research Institute - Research Collaboration</li>
+                            <li>• Enterprise Software Company - Integration Partner</li>
+                          </ul>
+                        </div>
+                        <div className="border rounded-lg p-4">
+                          <h4 className="font-medium">Distribution Partners</h4>
+                          <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                            <li>• Global Consulting Firm - Implementation Partner</li>
+                            <li>• Industry Association - Preferred Vendor</li>
+                            <li>• Regional Resellers - Channel Partners</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </ExpandableSection>
+
+                  <ExpandableSection title="Finance" sectionId="finance">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <h4 className="text-sm font-medium mb-2">Revenue Projections</h4>
+                          <div className="border rounded-lg overflow-hidden">
+                            <table className="w-full">
+                              <thead className="bg-muted/50">
+                                <tr>
+                                  <th className="text-left p-2 text-sm font-medium">Metric</th>
+                                  <th className="text-right p-2 text-sm font-medium">Year 1</th>
+                                  <th className="text-right p-2 text-sm font-medium">Year 2</th>
+                                  <th className="text-right p-2 text-sm font-medium">Year 3</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y">
+                                <tr>
+                                  <td className="p-2 text-sm">Revenue</td>
+                                  <td className="p-2 text-sm text-right">$2.5M</td>
+                                  <td className="p-2 text-sm text-right">$6.8M</td>
+                                  <td className="p-2 text-sm text-right">$15.2M</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 text-sm">YoY Growth</td>
+                                  <td className="p-2 text-sm text-right">-</td>
+                                  <td className="p-2 text-sm text-right">172%</td>
+                                  <td className="p-2 text-sm text-right">124%</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 text-sm">Gross Margin</td>
+                                  <td className="p-2 text-sm text-right">68%</td>
+                                  <td className="p-2 text-sm text-right">72%</td>
+                                  <td className="p-2 text-sm text-right">75%</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 text-sm">EBITDA</td>
+                                  <td className="p-2 text-sm text-right">-$1.8M</td>
+                                  <td className="p-2 text-sm text-right">-$0.5M</td>
+                                  <td className="p-2 text-sm text-right">$3.2M</td>
+                                </tr>
+                              </tbody>
+                            </table>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Gross Retention</span>
-                            <span className="text-sm font-medium">85% → 92%</span>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium mb-2">Key Projected KPIs</h4>
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-sm">Net Revenue Retention</span>
+                              <span className="text-sm font-medium">115% → 125%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm">Gross Retention</span>
+                              <span className="text-sm font-medium">85% → 92%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm">LTV:CAC Ratio</span>
+                              <span className="text-sm font-medium">2.5x → 4.2x</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm">Rule of 40 Score (Year 3)</span>
+                              <span className="text-sm font-medium">145%</span>
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">LTV:CAC Ratio</span>
-                            <span className="text-sm font-medium">2.5x → 4.2x</span>
+                          <div className="h-48 bg-muted/50 rounded-lg mt-4 flex items-center justify-center">
+                            [Revenue Growth Chart]
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Rule of 40 Score (Year 3)</span>
-                            <span className="text-sm font-medium">145%</span>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Use of Funds</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                          <div className="border rounded-lg p-3">
+                            <div className="text-lg font-bold">40%</div>
+                            <div className="text-xs text-muted-foreground">Product Development</div>
+                          </div>
+                          <div className="border rounded-lg p-3">
+                            <div className="text-lg font-bold">30%</div>
+                            <div className="text-xs text-muted-foreground">Sales & Marketing</div>
+                          </div>
+                          <div className="border rounded-lg p-3">
+                            <div className="text-lg font-bold">20%</div>
+                            <div className="text-xs text-muted-foreground">Team Expansion</div>
+                          </div>
+                          <div className="border rounded-lg p-3">
+                            <div className="text-lg font-bold">10%</div>
+                            <div className="text-xs text-muted-foreground">Operations</div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </ExpandableSection>
+
+                  <ExpandableSection title="Attachments" sectionId="attachments">
+                    <DocumentViewer
+                      documents={projectDocuments}
+                      title="Project Documents"
+                      description="Access all project-related documents and materials"
+                    />
+                  </ExpandableSection>
+                </div>
+              </div>
             </TabsContent>
 
-            <TabsContent
-              value="terms"
-              className="space-y-4 w-full overflow-y-auto tabs-content-scrollable"
-              style={{ maxHeight: "calc(100vh - 180px)" }}
-            >
-              {/* Existing terms content */}
-              <Card className="w-full">
-                <CardHeader className="pb-4">
+            <TabsContent value="faq" className="mt-0">
+              <FaqSection />
+            </TabsContent>
+
+            <TabsContent value="terms" className="mt-0">
+              <Card className="w-full border-0 shadow-none">
+                <CardHeader className="px-0">
                   <CardTitle>Investment Terms</CardTitle>
                   <CardDescription>Details of the current funding round</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 px-0">
                   <div>
                     <h3 className="text-lg font-medium">SAFE Agreement Terms</h3>
                     <ul className="list-disc pl-5 mt-2 text-muted-foreground">
@@ -643,18 +533,13 @@ export default function ProjectPage() {
               </Card>
             </TabsContent>
 
-            <TabsContent
-              value="updates"
-              className="space-y-4 w-full overflow-y-auto tabs-content-scrollable"
-              style={{ maxHeight: "calc(100vh - 180px)" }}
-            >
-              {/* Existing updates content */}
-              <Card className="w-full">
-                <CardHeader className="pb-4">
+            <TabsContent value="updates" className="mt-0">
+              <Card className="w-full border-0 shadow-none">
+                <CardHeader className="px-0">
                   <CardTitle>Project Updates</CardTitle>
                   <CardDescription>Latest news and updates from Tech Startup XYZ</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 px-0">
                   <div className="space-y-4">
                     <div className="border-b pb-4">
                       <h3 className="font-medium">Q2 Progress Report</h3>
@@ -684,8 +569,8 @@ export default function ProjectPage() {
           </Tabs>
         </div>
 
-        {/* Right sidebar - 4 columns */}
-        <div className="lg:col-span-4 space-y-6 h-fit">
+        {/* Right sidebar - Fundraising Format */}
+        <div className="lg:col-span-4 space-y-6">
           <FundraisingFormatCard />
         </div>
       </div>
