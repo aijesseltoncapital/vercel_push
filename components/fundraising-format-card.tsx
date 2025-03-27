@@ -11,7 +11,7 @@ export function FundraisingFormatCard() {
       </CardHeader>
 
       {/* Scrollable content area */}
-      <div className="overflow-y-auto custom-scrollbar max-h-[calc(100vh-220px)]">
+      <div className="overflow-y-auto custom-scrollbar max-h-[calc(100vh-300px)]">
         <CardContent className="space-y-4 pt-4">
           <div className="flex items-center gap-3 pb-4 border-b">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -138,7 +138,7 @@ export function FundraisingFormatCard() {
           </div>
 
           <div className="pt-4 mt-2 border-t">
-            <h4 className="text-sm font-medium mb-2">FAQ</h4>
+            <h4 className="text-sm font-medium mb-2">Fundraising FAQ</h4>
             <div className="space-y-3">
               <div>
                 <p className="text-sm font-medium">What happens if there's no future financing round?</p>
