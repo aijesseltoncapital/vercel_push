@@ -38,7 +38,13 @@ export function OverviewSidebar({ className }: OverviewSidebarProps) {
   const scrollToSection = (sectionId: string) => {
     const section = document.querySelector(`[data-section="${sectionId}"]`)
     if (section) {
-      section.scrollIntoView({ behavior: "smooth" })
+      const offsetY = 100; // Adjust this value to your desired offset (e.g., header height)
+      const sectionTop = (section as HTMLElement).getBoundingClientRect().top + window.pageYOffset;
+      
+      window.scrollTo({
+        top: sectionTop - offsetY,
+        behavior: "smooth"
+      });
     }
   }
 
