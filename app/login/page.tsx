@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-provider"
 import { Button } from "@/components/ui/button"
@@ -65,6 +65,24 @@ export default function LoginPage() {
       setIsLoading(false)
     }
   }
+
+  // Add this useEffect to check for proper logout
+  useEffect(() => {
+    // Check if the URL has a logout parameter
+    const urlParams = new URLSearchParams(window.location.search)
+    const loggedOut = urlParams.get("logout")
+
+    if (loggedOut === "true") {
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      })
+
+      // Clean URL by removing the logout parameter
+      const newUrl = window.location.pathname
+      window.history.replaceState({}, document.title, newUrl)
+    }
+  }, [toast])
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -150,4 +168,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

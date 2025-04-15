@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-provider"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,107 +20,99 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FileText, Download, Trash2, Eye, Plus, CheckCircle, Clock } from "lucide-react"
+import { FileText, Download, Trash2, Eye, Plus, CheckCircle, Clock, Loader2 } from "lucide-react"
 import { DocumentUploader } from "./components/document-uploader"
+
+// Define document interface
+interface Document {
+  id: string | number
+  name: string
+  type: string
+  category: string
+  description?: string
+  uploadDate: string
+  status: string
+  version: string
+  size: string
+  url?: string
+  downloadUrl?: string
+  viewUrl?: string
+}
 
 export default function StartupDocumentsPage() {
   const { user } = useAuth()
   const { toast } = useToast()
-  const [documents, setDocuments] = useState([
-    {
-      id: 1,
-      name: "Pitch Deck",
-      type: "presentation",
-      category: "investor",
-      description: "Company overview and investment opportunity",
-      uploadDate: "2023-05-01",
-      status: "published",
-      version: "1.2",
-      size: "3.5 MB",
-      downloadUrl: "#",
-      viewUrl: "#",
-    },
-    {
-      id: 2,
-      name: "Financial Projections",
-      type: "spreadsheet",
-      category: "investor",
-      description: "3-year financial forecast",
-      uploadDate: "2023-05-02",
-      status: "published",
-      version: "1.0",
-      size: "1.2 MB",
-      downloadUrl: "#",
-      viewUrl: "#",
-    },
-    {
-      id: 3,
-      name: "Product Roadmap",
-      type: "document",
-      category: "investor",
-      description: "18-month product development plan",
-      uploadDate: "2023-05-03",
-      status: "draft",
-      version: "0.9",
-      size: "2.1 MB",
-      downloadUrl: "#",
-      viewUrl: "#",
-    },
-    {
-      id: 4,
-      name: "Team Bios",
-      type: "document",
-      category: "investor",
-      description: "Leadership team backgrounds and experience",
-      uploadDate: "2023-05-04",
-      status: "published",
-      version: "1.1",
-      size: "0.8 MB",
-      downloadUrl: "#",
-      viewUrl: "#",
-    },
-    {
-      id: 5,
-      name: "Market Analysis",
-      type: "document",
-      category: "investor",
-      description: "Detailed market research and competitive analysis",
-      uploadDate: "2023-05-05",
-      status: "published",
-      version: "1.0",
-      size: "4.2 MB",
-      downloadUrl: "#",
-      viewUrl: "#",
-    },
-    {
-      id: 6,
-      name: "Technical Architecture",
-      type: "document",
-      category: "internal",
-      description: "System architecture and technical specifications",
-      uploadDate: "2023-05-06",
-      status: "draft",
-      version: "0.8",
-      size: "2.7 MB",
-      downloadUrl: "#",
-      viewUrl: "#",
-    },
-  ])
+  const [documents, setDocuments] = useState<Document[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
-  const [selectedDocument, setSelectedDocument] = useState<any>(null)
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
   const [documentDialogOpen, setDocumentDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [documentToDelete, setDocumentToDelete] = useState<any>(null)
+  const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null)
   const [editMode, setEditMode] = useState(false)
-  const [editedDocument, setEditedDocument] = useState<any>(null)
+  const [editedDocument, setEditedDocument] = useState<Document | null>(null)
 
-  const handleViewDocument = (document: any) => {
+  // Fetch documents from TOS
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        // Update the URL to match your Flask backend configuration
+        // If your Flask blueprint is registered with a prefix, adjust accordingly
+        const response = await fetch("/api/tos/documents")
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || `HTTP error ${response.status}`)
+        }
+
+        const data = await response.json()
+
+        // Transform data if necessary to match Document interface
+        const formattedDocuments = Array.isArray(data)
+          ? data.map((doc) => ({
+              id: doc.id || doc.key || doc._id || doc.name,
+              name: doc.name || "Unnamed Document",
+              type: doc.type || "document",
+              category: doc.category || "investor",
+              description: doc.description || "",
+              uploadDate: doc.uploadDate || doc.last_modified || new Date().toISOString().split("T")[0],
+              status: doc.status || "published",
+              version: doc.version || "1.0",
+              size: doc.size || "0 KB",
+              url: doc.url,
+              downloadUrl: doc.url || doc.downloadUrl,
+              viewUrl: doc.url || doc.viewUrl,
+            }))
+          : []
+
+        setDocuments(formattedDocuments)
+      } catch (error: any) {
+        console.error("Error fetching documents:", error)
+        setError(error.message || "Failed to load documents")
+        toast({
+          title: "Error loading documents",
+          description: error.message || "Failed to load documents from storage",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDocuments()
+  }, [toast])
+
+  const handleViewDocument = (document: Document) => {
     setSelectedDocument(document)
     setDocumentDialogOpen(true)
     setEditMode(false)
   }
 
-  const handleEditDocument = (document: any) => {
+  const handleEditDocument = (document: Document) => {
     setSelectedDocument(document)
     setEditedDocument({ ...document })
     setDocumentDialogOpen(true)
@@ -140,7 +132,7 @@ export default function StartupDocumentsPage() {
     setDocumentDialogOpen(false)
   }
 
-  const handleDeletePrompt = (document: any) => {
+  const handleDeletePrompt = (document: Document) => {
     setDocumentToDelete(document)
     setDeleteDialogOpen(true)
   }
@@ -158,7 +150,7 @@ export default function StartupDocumentsPage() {
     setDeleteDialogOpen(false)
   }
 
-  const handlePublishDocument = (document: any) => {
+  const handlePublishDocument = (document: Document) => {
     setDocuments(documents.map((doc) => (doc.id === document.id ? { ...doc, status: "published" } : doc)))
 
     toast({
@@ -168,24 +160,52 @@ export default function StartupDocumentsPage() {
   }
 
   const handleUploadSuccess = (newDocument: any) => {
-    // In a real app, this would come from the server with a real ID
-    const documentWithId = {
-      ...newDocument,
-      id: Math.max(...documents.map((d) => d.id)) + 1,
-      uploadDate: new Date().toISOString().split("T")[0],
-      status: "draft",
-      version: "1.0",
-      downloadUrl: "#",
-      viewUrl: "#",
-    }
+    // Refresh the document list from the server
+    setIsLoading(true)
+    // Update the URL to match your Flask backend configuration
+    fetch("/api/tos/documents")
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to fetch updated documents")
+        return response.json()
+      })
+      .then((data) => {
+        // Transform data if necessary to match Document interface
+        const formattedDocuments = Array.isArray(data)
+          ? data.map((doc) => ({
+              id: doc.id || doc.key || doc._id || doc.name,
+              name: doc.name || "Unnamed Document",
+              type: doc.type || "document",
+              category: doc.category || "investor",
+              description: doc.description || "",
+              uploadDate: doc.uploadDate || doc.last_modified || new Date().toISOString().split("T")[0],
+              status: doc.status || "published",
+              version: doc.version || "1.0",
+              size: doc.size || "0 KB",
+              url: doc.url,
+              downloadUrl: doc.url || doc.downloadUrl,
+              viewUrl: doc.url || doc.viewUrl,
+            }))
+          : []
 
-    setDocuments([documentWithId, ...documents])
-    setUploadDialogOpen(false)
+        setDocuments(formattedDocuments)
+        setUploadDialogOpen(false)
 
-    toast({
-      title: "Document uploaded",
-      description: "Your document has been uploaded successfully",
-    })
+        toast({
+          title: "Document uploaded",
+          description: "Your document has been uploaded successfully",
+        })
+      })
+      .catch((error) => {
+        console.error("Error refreshing documents:", error)
+        toast({
+          title: "Error",
+          description: "Document was uploaded but the list couldn't be refreshed",
+          variant: "destructive",
+        })
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
   }
 
   const getStatusBadge = (status: string) => {
@@ -226,9 +246,96 @@ export default function StartupDocumentsPage() {
   const publishedDocuments = documents.filter((doc) => doc.status === "published")
   const draftDocuments = documents.filter((doc) => doc.status === "draft")
 
+  const renderDocumentList = (documentList: Document[]) => {
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2">Loading documents...</span>
+        </div>
+      )
+    }
+
+    if (error) {
+      return (
+        <div className="text-center py-8">
+          <p className="text-destructive">Error: {error}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      )
+    }
+
+    if (documentList.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No documents found</p>
+          <Button onClick={() => setUploadDialogOpen(true)} className="mt-4">
+            <Plus className="mr-2 h-4 w-4" />
+            Upload Document
+          </Button>
+        </div>
+      )
+    }
+
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Category</TableHead>
+            <TableHead>Upload Date</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {documentList.map((document) => (
+            <TableRow key={document.id}>
+              <TableCell className="font-medium">
+                <div className="flex items-center">
+                  {getDocumentTypeIcon(document.type)}
+                  <span className="ml-2">{document.name}</span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline">{document.category === "investor" ? "Investor" : "Internal"}</Badge>
+              </TableCell>
+              <TableCell>{document.uploadDate}</TableCell>
+              <TableCell>{getStatusBadge(document.status)}</TableCell>
+              <TableCell>
+                <div className="flex space-x-2">
+                  <Button variant="ghost" size="sm" onClick={() => handleViewDocument(document)}>
+                    <Eye className="h-4 w-4" />
+                    <span className="sr-only">View</span>
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleEditDocument(document)}>
+                    <FileText className="h-4 w-4" />
+                    <span className="sr-only">Edit</span>
+                  </Button>
+                  {document.status === "draft" && (
+                    <Button variant="ghost" size="sm" onClick={() => handlePublishDocument(document)}>
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="sr-only">Publish</span>
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" onClick={() => handleDeletePrompt(document)}>
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Delete</span>
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    )
+  }
+
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
+      <div className="flex items-center justify-between space-y-2 mt-20">
         <h2 className="text-3xl font-bold tracking-tight">Documents</h2>
         <Button onClick={() => setUploadDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -251,66 +358,7 @@ export default function StartupDocumentsPage() {
               <CardTitle>All Documents</CardTitle>
               <CardDescription>Manage all your project documents</CardDescription>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Upload Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {documents.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
-                        No documents found
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    documents.map((document) => (
-                      <TableRow key={document.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center">
-                            {getDocumentTypeIcon(document.type)}
-                            <span className="ml-2">{document.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{document.category === "investor" ? "Investor" : "Internal"}</Badge>
-                        </TableCell>
-                        <TableCell>{document.uploadDate}</TableCell>
-                        <TableCell>{getStatusBadge(document.status)}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button variant="ghost" size="sm" onClick={() => handleViewDocument(document)}>
-                              <Eye className="h-4 w-4" />
-                              <span className="sr-only">View</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleEditDocument(document)}>
-                              <FileText className="h-4 w-4" />
-                              <span className="sr-only">Edit</span>
-                            </Button>
-                            {document.status === "draft" && (
-                              <Button variant="ghost" size="sm" onClick={() => handlePublishDocument(document)}>
-                                <CheckCircle className="h-4 w-4" />
-                                <span className="sr-only">Publish</span>
-                              </Button>
-                            )}
-                            <Button variant="ghost" size="sm" onClick={() => handleDeletePrompt(document)}>
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">Delete</span>
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
+            <CardContent>{renderDocumentList(documents)}</CardContent>
           </Card>
         </TabsContent>
 
@@ -320,62 +368,7 @@ export default function StartupDocumentsPage() {
               <CardTitle>Investor Documents</CardTitle>
               <CardDescription>Documents visible to investors</CardDescription>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Upload Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {investorDocuments.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
-                        No investor documents found
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    investorDocuments.map((document) => (
-                      <TableRow key={document.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center">
-                            {getDocumentTypeIcon(document.type)}
-                            <span className="ml-2">{document.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{document.uploadDate}</TableCell>
-                        <TableCell>{getStatusBadge(document.status)}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button variant="ghost" size="sm" onClick={() => handleViewDocument(document)}>
-                              <Eye className="h-4 w-4" />
-                              <span className="sr-only">View</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleEditDocument(document)}>
-                              <FileText className="h-4 w-4" />
-                              <span className="sr-only">Edit</span>
-                            </Button>
-                            {document.status === "draft" && (
-                              <Button variant="ghost" size="sm" onClick={() => handlePublishDocument(document)}>
-                                <CheckCircle className="h-4 w-4" />
-                                <span className="sr-only">Publish</span>
-                              </Button>
-                            )}
-                            <Button variant="ghost" size="sm" onClick={() => handleDeletePrompt(document)}>
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">Delete</span>
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
+            <CardContent>{renderDocumentList(investorDocuments)}</CardContent>
           </Card>
         </TabsContent>
 
@@ -385,62 +378,7 @@ export default function StartupDocumentsPage() {
               <CardTitle>Internal Documents</CardTitle>
               <CardDescription>Documents for internal use only</CardDescription>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Upload Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {internalDocuments.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
-                        No internal documents found
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    internalDocuments.map((document) => (
-                      <TableRow key={document.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center">
-                            {getDocumentTypeIcon(document.type)}
-                            <span className="ml-2">{document.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{document.uploadDate}</TableCell>
-                        <TableCell>{getStatusBadge(document.status)}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button variant="ghost" size="sm" onClick={() => handleViewDocument(document)}>
-                              <Eye className="h-4 w-4" />
-                              <span className="sr-only">View</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleEditDocument(document)}>
-                              <FileText className="h-4 w-4" />
-                              <span className="sr-only">Edit</span>
-                            </Button>
-                            {document.status === "draft" && (
-                              <Button variant="ghost" size="sm" onClick={() => handlePublishDocument(document)}>
-                                <CheckCircle className="h-4 w-4" />
-                                <span className="sr-only">Publish</span>
-                              </Button>
-                            )}
-                            <Button variant="ghost" size="sm" onClick={() => handleDeletePrompt(document)}>
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">Delete</span>
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
+            <CardContent>{renderDocumentList(internalDocuments)}</CardContent>
           </Card>
         </TabsContent>
 
@@ -450,58 +388,7 @@ export default function StartupDocumentsPage() {
               <CardTitle>Published Documents</CardTitle>
               <CardDescription>Documents visible to investors</CardDescription>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Upload Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {publishedDocuments.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
-                        No published documents found
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    publishedDocuments.map((document) => (
-                      <TableRow key={document.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center">
-                            {getDocumentTypeIcon(document.type)}
-                            <span className="ml-2">{document.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{document.category === "investor" ? "Investor" : "Internal"}</Badge>
-                        </TableCell>
-                        <TableCell>{document.uploadDate}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button variant="ghost" size="sm" onClick={() => handleViewDocument(document)}>
-                              <Eye className="h-4 w-4" />
-                              <span className="sr-only">View</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleEditDocument(document)}>
-                              <FileText className="h-4 w-4" />
-                              <span className="sr-only">Edit</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeletePrompt(document)}>
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">Delete</span>
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
+            <CardContent>{renderDocumentList(publishedDocuments)}</CardContent>
           </Card>
         </TabsContent>
 
@@ -511,62 +398,7 @@ export default function StartupDocumentsPage() {
               <CardTitle>Draft Documents</CardTitle>
               <CardDescription>Documents not yet published to investors</CardDescription>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Upload Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {draftDocuments.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
-                        No draft documents found
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    draftDocuments.map((document) => (
-                      <TableRow key={document.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center">
-                            {getDocumentTypeIcon(document.type)}
-                            <span className="ml-2">{document.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{document.category === "investor" ? "Investor" : "Internal"}</Badge>
-                        </TableCell>
-                        <TableCell>{document.uploadDate}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button variant="ghost" size="sm" onClick={() => handleViewDocument(document)}>
-                              <Eye className="h-4 w-4" />
-                              <span className="sr-only">View</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleEditDocument(document)}>
-                              <FileText className="h-4 w-4" />
-                              <span className="sr-only">Edit</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handlePublishDocument(document)}>
-                              <CheckCircle className="h-4 w-4" />
-                              <span className="sr-only">Publish</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeletePrompt(document)}>
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">Delete</span>
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
+            <CardContent>{renderDocumentList(draftDocuments)}</CardContent>
           </Card>
         </TabsContent>
       </Tabs>
@@ -625,7 +457,9 @@ export default function StartupDocumentsPage() {
                   </div>
                   <div>
                     <h3 className="text-sm font-medium">Description</h3>
-                    <p className="text-sm text-muted-foreground">{selectedDocument.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedDocument.description || "No description provided"}
+                    </p>
                   </div>
                   <div className="border rounded-lg p-4 bg-muted/30 flex items-center justify-center h-64">
                     <div className="text-center">
@@ -643,14 +477,32 @@ export default function StartupDocumentsPage() {
                       <Input
                         id="name"
                         value={editedDocument?.name || ""}
-                        onChange={(e) => setEditedDocument({ ...editedDocument, name: e.target.value })}
+                        onChange={(e) =>
+                          setEditedDocument(
+                            editedDocument
+                              ? {
+                                  ...editedDocument,
+                                  name: e.target.value,
+                                }
+                              : null,
+                          )
+                        }
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="type">Type</Label>
                       <Select
                         value={editedDocument?.type || ""}
-                        onValueChange={(value) => setEditedDocument({ ...editedDocument, type: value })}
+                        onValueChange={(value) =>
+                          setEditedDocument(
+                            editedDocument
+                              ? {
+                                  ...editedDocument,
+                                  type: value,
+                                }
+                              : null,
+                          )
+                        }
                       >
                         <SelectTrigger id="type">
                           <SelectValue placeholder="Select type" />
@@ -666,7 +518,16 @@ export default function StartupDocumentsPage() {
                       <Label htmlFor="category">Category</Label>
                       <Select
                         value={editedDocument?.category || ""}
-                        onValueChange={(value) => setEditedDocument({ ...editedDocument, category: value })}
+                        onValueChange={(value) =>
+                          setEditedDocument(
+                            editedDocument
+                              ? {
+                                  ...editedDocument,
+                                  category: value,
+                                }
+                              : null,
+                          )
+                        }
                       >
                         <SelectTrigger id="category">
                           <SelectValue placeholder="Select category" />
@@ -682,7 +543,16 @@ export default function StartupDocumentsPage() {
                       <Input
                         id="version"
                         value={editedDocument?.version || ""}
-                        onChange={(e) => setEditedDocument({ ...editedDocument, version: e.target.value })}
+                        onChange={(e) =>
+                          setEditedDocument(
+                            editedDocument
+                              ? {
+                                  ...editedDocument,
+                                  version: e.target.value,
+                                }
+                              : null,
+                          )
+                        }
                       />
                     </div>
                   </div>
@@ -691,7 +561,16 @@ export default function StartupDocumentsPage() {
                     <Textarea
                       id="description"
                       value={editedDocument?.description || ""}
-                      onChange={(e) => setEditedDocument({ ...editedDocument, description: e.target.value })}
+                      onChange={(e) =>
+                        setEditedDocument(
+                          editedDocument
+                            ? {
+                                ...editedDocument,
+                                description: e.target.value,
+                              }
+                            : null,
+                        )
+                      }
                       rows={3}
                     />
                   </div>
@@ -706,10 +585,15 @@ export default function StartupDocumentsPage() {
                   Close
                 </Button>
                 <Button onClick={() => setEditMode(true)}>Edit</Button>
-                <Button variant="secondary">
+                <a
+                  href={selectedDocument?.url || selectedDocument?.downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground h-10 px-4 py-2"
+                >
                   <Download className="mr-2 h-4 w-4" />
                   Download
-                </Button>
+                </a>
               </div>
             ) : (
               <div className="flex space-x-2">
@@ -758,4 +642,3 @@ export default function StartupDocumentsPage() {
     </div>
   )
 }
-

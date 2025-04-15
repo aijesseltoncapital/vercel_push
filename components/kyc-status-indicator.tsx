@@ -2,14 +2,14 @@ import { ShieldCheck, AlertTriangle, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 interface KycStatusIndicatorProps {
-  status: "not_submitted" | "pending" | "approved" | "rejected"
+  status: "not_submitted" | "submitted" | "rejected"
   showLabel?: boolean
   className?: string
 }
 
 export function KycStatusIndicator({ status, showLabel = true, className = "" }: KycStatusIndicatorProps) {
   switch (status) {
-    case "approved":
+    case "submitted":
       return (
         <Badge
           className={`bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300 flex items-center ${className}`}
@@ -18,7 +18,7 @@ export function KycStatusIndicator({ status, showLabel = true, className = "" }:
           {showLabel && "KYC Verified"}
         </Badge>
       )
-    case "pending":
+    case "not_submitted":
       return (
         <Badge variant="outline" className={`text-yellow-800 dark:text-yellow-300 flex items-center ${className}`}>
           <Clock className="h-3 w-3 mr-1" />
@@ -41,4 +41,3 @@ export function KycStatusIndicator({ status, showLabel = true, className = "" }:
       )
   }
 }
-

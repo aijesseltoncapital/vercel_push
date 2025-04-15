@@ -4,7 +4,6 @@ import { useAuth } from "@/lib/auth-provider"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import { PaymentSchedule } from "../invest/payment-schedule"
 import Link from "next/link"
 import { DocumentViewer } from "@/components/document-viewer"
@@ -23,7 +22,7 @@ export default function ProjectPage() {
     projectName: "Tech Startup XYZ",
     invested: 0,
     documents: [],
-    status: user?.investmentStatus || "not_started",
+    status: user?.onboardingStatus.investment || "not_started",
     projectProgress: 45, // percentage of funding goal reached
     totalRaised: 450000,
     goal: 1000000,
@@ -75,71 +74,144 @@ export default function ProjectPage() {
     },
   ]
 
+  const navItems = [
+    { id: "about", label: "About Us" },
+    { id: "problem", label: "Problem" },
+    { id: "solution", label: "Solution" },
+    { id: "market-overview", label: "Market Overview" },
+    { id: "goals", label: "Strategic Goals" },
+    { id: "team", label: "Team" },
+    { id: "traction", label: "Track record" },
+    { id: "partnerships", label: "Partnerships" },
+    { id: "finance", label: "Finance" },
+    { id: "attachments", label: "Attachments" },
+  ]
+
   return (
-    <div className="flex-1 container mx-auto max-w-7xl px-4 pb-12">
-      {/* Hero Section - Kickstarter Style */}
-      <div className="relative w-full h-[400px] rounded-lg overflow-hidden mb-8 mt-6">
-        <Image
-          src="https://i.postimg.cc/s2977jJJ/HR-Monster.png"
-          alt="HR Monster"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
-          <div className="p-8 text-white w-full">
-            <h1 className="text-4xl font-bold mb-2">Tech Startup XYZ</h1>
-            <p className="text-lg opacity-90 max-w-2xl">
-              Cutting-edge technology that will transform how businesses operate through AI and machine learning.
-            </p>
+    <div className="flex-1 container mx-auto max-w-7xl px-4 pb-12 pt-20">
+      {/* Hero Section - Restructured */}
+      {/* Startup Information - Full width */}
+      <div className="w-full mb-10">
+        <div className="flex gap-3 mb-4 mt-4">
+          <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full">Payroll</span>
+          <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full">SaaS</span>
+        </div>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-4xl font-bold">HR Monster</h1>
+        </div>
+        <p className="text-lg text-muted-foreground">
+          Monster HR is an AI-driven platform that redefines payroll and HR efficiency, automating complex tasks,
+          ensuring compliance accuracy, and delivering powerful cost savings with effortless integration
+        </p>
+        <a
+          href="https://www.hr.monster"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center mt-4 px-4 py-2 bg-primary text-primary-foreground font-medium rounded-md hover:bg-primary/90 transition-colors"
+        >
+          Visit Us
+        </a>
+      </div>
+
+      {/* Image and Investment Info - Equal width */}
+      <div className="flex flex-col lg:flex-row gap-6 mb-8">
+        {/* Banner Image */}
+        <div className="w-full lg:w-[70%] relative rounded-lg overflow-hidden">
+          <Image
+            src="https://i.postimg.cc/s2977jJJ/HR-Monster.png"
+            alt="HR Monster hero banner"
+            className="object-cover"
+            width={1200}
+            height={800}
+            priority
+          />
+        </div>
+
+        {/* Investment Info Panel */}
+        <div className="w-full lg:w-[30%] bg-white rounded-lg shadow-md p-6 border border-gray-100 flex flex-col justify-center">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800">Investment Details</h2>
+
+          <div className="space-y-5">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <span className="text-gray-600 font-medium">Round</span>
+              <span className="font-semibold">Pre-seed</span>
+            </div>
+
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <span className="text-gray-600 font-medium">Valuation</span>
+              <span className="font-semibold">SGD 5,000,000</span>
+            </div>
+
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <span className="text-gray-600 font-medium">Funding amount</span>
+              <span className="font-semibold">SGD 500,000</span>
+            </div>
+
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <span className="text-gray-600 font-medium">Deadline</span>
+              <span className="font-semibold">Rolling Close</span>
+            </div>
+
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <span className="text-gray-600 font-medium">Instrument</span>
+              <span className="font-semibold">SAFE</span>
+            </div>
+
+            <div className="flex justify-between items-center pb-3">
+              <span className="text-gray-600 font-medium">Minimum ticket</span>
+              <div className="flex items-center">
+                <span className="font-semibold mr-2">SGD 5,000</span>
+                <div className="relative group">
+                  <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold cursor-help">
+                    i
+                  </div>
+                  <div className="absolute right-0 bottom-full mb-2 w-48 bg-black text-white text-xs rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                    Minimum ticket size per investor
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-auto pt-6">
+            {user?.onboardingStatus.nda === "signed" ? (
+              <Link href="/investor/payment-options">
+                <Button className="w-full">Invest Now</Button>
+              </Link>
+            ) : (
+              <Link href="/investor/nda">
+                <Button className="w-full">Sign NDA to Invest</Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
 
       {/* Main content grid - Kickstarter Style */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Main content area - 8 columns */}
-        <div className="lg:col-span-8">
-          {/* Project stats bar - Kickstarter Style */}
-          <div className="mb-8">
-            <div className="mb-4">
-              <Progress value={investmentData.projectProgress} className="h-3 rounded-full" />
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="flex flex-col">
-                <span className="text-3xl font-bold">${investmentData.totalRaised.toLocaleString()}</span>
-                <span className="text-muted-foreground text-sm">of ${investmentData.goal.toLocaleString()} goal</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-3xl font-bold">{investmentData.backers}</span>
-                <span className="text-muted-foreground text-sm">investors</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-3xl font-bold">{investmentData.daysLeft}</span>
-                <span className="text-muted-foreground text-sm">days to go</span>
-              </div>
-            </div>
-          </div>
-
+      <div className="grid grid-cols-1 gap-8">
+        {/* Main content area - full width */}
+        <div className="w-full">
           {/* KYC Status Alert - Styled like Kickstarter's alerts */}
-          {user?.kycStatus !== "approved" && (
+          {user?.onboardingStatus.kyc !== "submitted" && (
             <div className="mb-8 bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-medium text-amber-800">KYC Verification Required</h3>
                 <p className="text-sm text-amber-700 mt-1">
-                  {user?.kycStatus === "pending"
-                    ? "Your KYC verification is pending. You'll be notified once it's approved."
-                    : user?.kycStatus === "rejected"
-                      ? "Your KYC verification was rejected. Please visit the KYC page to resubmit."
-                      : "You need to complete KYC verification before investing. Please visit the KYC page to get started."}
+                  {user?.onboardingStatus.kyc === "not_submitted"
+                    ? "You need to complete KYC verification before investing. Please visit the KYC page to get started."
+                    : user?.onboardingStatus.kyc === "pending"
+                      ? "Your KYC verification is pending. You'll be notified once it's submitted."
+                      : user?.onboardingStatus.kyc === "rejected"
+                        ? "Your KYC verification was rejected. Please visit the KYC page to resubmit."
+                        : "You need to complete KYC verification before investing. Please visit the KYC page to get started."}
                 </p>
                 <div className="mt-3">
                   <Link href="/investor/kyc">
                     <Button variant="outline" size="sm" className="bg-white">
-                      {user?.kycStatus === "not_submitted" && "Complete KYC"}
-                      {user?.kycStatus === "pending" && "Check KYC Status"}
-                      {user?.kycStatus === "rejected" && "Resubmit KYC"}
+                      {user?.onboardingStatus.kyc === "not_submitted" && "Complete KYC"}
+                      {user?.onboardingStatus.kyc === "pending" && "Check KYC Status"}
+                      {user?.onboardingStatus.kyc === "rejected" && "Resubmit KYC"}
                     </Button>
                   </Link>
                 </div>
@@ -149,12 +221,18 @@ export default function ProjectPage() {
 
           {/* Tabs - Kickstarter Style */}
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="w-full grid grid-cols-4 h-auto p-0 bg-transparent border-b rounded-none mb-6 sticky top-[64px] z-40 bg-background">
+            <TabsList className="w-full grid grid-cols-5 h-auto p-0 bg-transparent border-b rounded-none mb-6 sticky top-[80px] z-40 bg-background">
               <TabsTrigger
                 value="overview"
                 className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none bg-transparent h-12"
               >
                 Overview
+              </TabsTrigger>
+              <TabsTrigger
+                value="fundraising"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none bg-transparent h-12"
+              >
+                Fundraising
               </TabsTrigger>
               <TabsTrigger
                 value="faq"
@@ -179,311 +257,396 @@ export default function ProjectPage() {
             <TabsContent value="overview" className="mt-0">
               <div className="flex flex-col md:flex-row md:gap-6">
                 {/* Sidebar navigation - Kickstarter style */}
-                <div className="hidden md:block md:w-1/4">
-                  <OverviewSidebar />
+                <div className="hidden md:block md:w-1/6">
+                  <OverviewSidebar navItems={navItems} />
                 </div>
 
                 {/* Main content */}
-                <div className="md:w-3/4 space-y-6">
+                <div className="md:w-5/6 space-y-6">
                   <ExpandableSection title="About Us" sectionId="about">
                     <div className="space-y-4">
                       <p className="text-muted-foreground">
-                        Tech Startup XYZ is developing cutting-edge technology that will transform how businesses
-                        operate. Our platform leverages artificial intelligence and machine learning to provide
-                        unprecedented insights and automation capabilities.
+                        Monster HR is an AI-driven HRIS and payroll platform created by Pascal Henry, a proven founder
+                        and innovator behind successful HR startups such as HReasily, Business HR Asia (CIMB) and Smart
+                        HR (HSBC). We are reimagining the HR the software world with AI — Building it better - cheaper,
+                        faster, smarter
                       </p>
-                      <div className="flex justify-center">
-                        <div className="w-3/4 h-48 bg-muted rounded-lg flex items-center justify-center">
-                          [Company Logo & Vision Statement]
-                        </div>
-                      </div>
                     </div>
                   </ExpandableSection>
 
                   <ExpandableSection title="Problem" sectionId="problem">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <p>
-                          <strong>Data Overload:</strong> Companies are drowning in data but starving for insights.
-                        </p>
-                        <p>
-                          <strong>Siloed Systems:</strong> Existing solutions are fragmented and don't communicate with
-                          each other.
-                        </p>
-                        <p>
-                          <strong>Technical Barriers:</strong> Current tools require specialized knowledge to operate
-                          effectively.
-                        </p>
+                    <div className="flex flex-col items-center space-y-8 pt-4">
+                      <div
+                        className="w-full bg-muted rounded-lg overflow-hidden relative"
+                        style={{ paddingBottom: "56.25%" }}
+                      >
+                        <Image
+                          src="https://i.postimg.cc/pTFzrgY1/problem.png"
+                          alt="Problem Visualization"
+                          fill
+                          className="object-cover"
+                        />
                       </div>
-                      <div className="flex items-center justify-center">
-                        <div className="w-full h-40 bg-muted rounded-lg flex items-center justify-center">
-                          [Problem Visualization]
-                        </div>
+                      <div
+                        className="w-full bg-muted rounded-lg overflow-hidden relative"
+                        style={{ paddingBottom: "56.25%" }}
+                      >
+                        <Image
+                          src="https://i.postimg.cc/xjbGsbHV/image-2025-03-28-110846163.png"
+                          alt="Problem Visualization 2"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <div
+                        className="w-full bg-muted rounded-lg overflow-hidden relative"
+                        style={{ paddingBottom: "56.25%" }}
+                      >
+                        <Image
+                          src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/problem_3.jpg"
+                          alt="Problem Visualization 3"
+                          fill
+                          className="object-cover"
+                        />
                       </div>
                     </div>
                   </ExpandableSection>
 
                   <ExpandableSection title="Solution" sectionId="solution">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="flex items-center justify-center">
-                        <div className="w-full h-40 bg-muted rounded-lg flex items-center justify-center">
-                          [Product Screenshot]
+                    <div className="space-y-6">
+                      <div className="space-y-8">
+                        <div
+                          className="w-full bg-muted rounded-lg overflow-hidden relative"
+                          style={{ paddingBottom: "56.25%" }}
+                        >
+                          <Image
+                            src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/5.png"
+                            alt="HR Monster Solution Overview"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div
+                          className="w-full bg-muted rounded-lg overflow-hidden relative"
+                          style={{ paddingBottom: "56.25%" }}
+                        >
+                          <Image
+                            src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/6.png"
+                            alt="HR Monster Platform Features"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div
+                          className="w-full bg-muted rounded-lg overflow-hidden relative"
+                          style={{ paddingBottom: "56.25%" }}
+                        >
+                          <Image
+                            src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/7.png"
+                            alt="HR Monster Platform Architecture"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div
+                          className="w-full bg-muted rounded-lg overflow-hidden relative"
+                          style={{ paddingBottom: "56.25%" }}
+                        >
+                          <Image
+                            src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/13.png"
+                            alt="HR Monster Integration Capabilities"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div
+                          className="w-full bg-muted rounded-lg overflow-hidden relative"
+                          style={{ paddingBottom: "56.25%" }}
+                        >
+                          <Image
+                            src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/14.png"
+                            alt="HR Monster Analytics Dashboard"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div
+                          className="w-full bg-muted rounded-lg overflow-hidden relative"
+                          style={{ paddingBottom: "56.25%" }}
+                        >
+                          <Image
+                            src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/15.png"
+                            alt="HR Monster Implementation Timeline"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                       </div>
-                      <div className="space-y-4">
-                        <p>
-                          <strong>Unified Platform:</strong> A single source of truth for all business data.
-                        </p>
-                        <p>
-                          <strong>AI-Powered Insights:</strong> Automated analysis that surfaces actionable
-                          intelligence.
-                        </p>
-                        <p>
-                          <strong>Intuitive Interface:</strong> Designed for business users, not just data scientists.
-                        </p>
+
+                      <div className="mt-8">
+                        <h4 className="text-lg font-medium mb-4">Business Model</h4>
+                        <div
+                          className="w-full bg-muted rounded-lg overflow-hidden relative"
+                          style={{ paddingBottom: "56.25%" }}
+                        >
+                          <Image
+                            src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/16.png"
+                            alt="HR Monster Business Model"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
                       </div>
                     </div>
                   </ExpandableSection>
 
-                  <ExpandableSection title="Traction" sectionId="traction">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                      <div>
-                        <div className="text-2xl font-bold">42</div>
-                        <div className="text-sm text-muted-foreground">Enterprise Customers</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold">$1.2M</div>
-                        <div className="text-sm text-muted-foreground">Annual Recurring Revenue</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold">120%</div>
-                        <div className="text-sm text-muted-foreground">YoY Growth</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold">87%</div>
-                        <div className="text-sm text-muted-foreground">Customer Retention</div>
-                      </div>
-                    </div>
-                  </ExpandableSection>
-
-                  <ExpandableSection title="Customers" sectionId="customers">
-                    <div className="space-y-4">
+                  <ExpandableSection title="Market Overview" sectionId="market-overview">
+                    <div className="space-y-6">
                       <p className="text-muted-foreground">
-                        Our platform is trusted by leading companies across various industries:
+                        Our market analysis shows the size and growth potential of the HR and payroll software market:
                       </p>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="h-20 bg-muted rounded-lg flex items-center justify-center">
-                          [Customer Logo 1]
+                      <div className="space-y-8">
+                        <div
+                          className="w-full bg-muted rounded-lg overflow-hidden relative"
+                          style={{ paddingBottom: "56.25%" }}
+                        >
+                          <Image
+                            src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/8.png"
+                            alt="Market Size Analysis"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
-                        <div className="h-20 bg-muted rounded-lg flex items-center justify-center">
-                          [Customer Logo 2]
+                        <div
+                          className="w-full bg-muted rounded-lg overflow-hidden relative"
+                          style={{ paddingBottom: "56.25%" }}
+                        >
+                          <Image
+                            src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/9.png"
+                            alt="Market Positioning"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
-                        <div className="h-20 bg-muted rounded-lg flex items-center justify-center">
-                          [Customer Logo 3]
-                        </div>
-                        <div className="h-20 bg-muted rounded-lg flex items-center justify-center">
-                          [Customer Logo 4]
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="font-medium">Customer Testimonials:</p>
-                        <blockquote className="border-l-4 pl-4 italic text-muted-foreground">
-                          "Tech Startup XYZ has transformed how we analyze our business data, leading to a 30% increase
-                          in operational efficiency."
-                          <footer className="text-sm mt-1">— CTO, Enterprise Customer</footer>
-                        </blockquote>
                       </div>
                     </div>
                   </ExpandableSection>
 
                   <ExpandableSection title="Strategic Goals" sectionId="goals">
                     <div className="space-y-4">
-                      <p className="text-muted-foreground">Our strategic roadmap for the next 24 months:</p>
-                      <div className="space-y-4">
-                        <div className="border-l-2 border-primary pl-4">
-                          <h4 className="font-medium">Q3-Q4 2023</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Launch advanced analytics module and expand sales team to target enterprise customers.
-                          </p>
-                        </div>
-                        <div className="border-l-2 border-primary pl-4">
-                          <h4 className="font-medium">Q1-Q2 2024</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Release API ecosystem for third-party integrations and enter European market.
-                          </p>
-                        </div>
-                        <div className="border-l-2 border-primary pl-4">
-                          <h4 className="font-medium">Q3-Q4 2024</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Launch industry-specific solutions and prepare for Series A funding round.
-                          </p>
+                      <p className="text-muted-foreground">Our strategic roadmap for the next 12 months:</p>
+
+                      <div className="mt-8">
+                        <div
+                          className="w-full bg-muted rounded-lg overflow-hidden relative"
+                          style={{ paddingBottom: "56.25%" }}
+                        >
+                          <Image
+                            src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/18.png"
+                            alt="Strategic Roadmap"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                       </div>
                     </div>
                   </ExpandableSection>
 
                   <ExpandableSection title="Team" sectionId="team">
-                    <div className="space-y-6">
-                      <div className="flex flex-col md:flex-row gap-4">
-                        <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
-                          <span className="text-2xl font-bold">JD</span>
+                    <div className="space-y-8">
+                      {/* Founder information */}
+                      <div className="flex flex-col md:flex-row gap-6">
+                        <div className="w-32 h-32 rounded-full bg-muted flex-shrink-0 overflow-hidden relative">
+                          <Image
+                            src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/Pascal-Light-crop-750x503.png"
+                            alt="Pascal Henry"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                         <div>
-                          <h3 className="text-lg font-medium">Jane Doe</h3>
-                          <p className="text-sm text-muted-foreground">CEO & Co-Founder</p>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Former VP of Product at Tech Giant, with 15+ years of experience in the industry. MBA from
-                            Stanford University.
-                          </p>
+                          <h3 className="text-xl font-medium">Pascal Henry</h3>
+                          <p className="text-sm text-muted-foreground">Founder & CEO</p>
+                          <div className="space-y-4 mt-3">
+                            <p className="text-sm text-muted-foreground">
+                              Pascal Henry is an accomplished entrepreneur and visionary with 15 years of expertise in
+                              revolutionising HR technology. A driving force behind industry-leading ventures such as
+                              HReasily, Business HR Asia (partnered with CIMB), and Smart HR (in collaboration with
+                              HSBC), he has consistently delivered transformative solutions for the modern workforce.
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              With a career rooted in building three HR tech platforms through conventional
+                              methodologies, Pascal possesses unparalleled insight into the sector's challenges, cost
+                              and opportunities. This foundational experience uniquely equips him to harness AI as a
+                              catalyst for redefining HR innovation. Bridging legacy systems with cutting-edge
+                              technology, he is pioneering the next generation of intelligent, affordable & scalable HR
+                              solutions—setting a new standard for efficiency, adaptability, and human-centric design in
+                              workplace management.
+                            </p>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="flex flex-col md:flex-row gap-4">
-                        <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
-                          <span className="text-2xl font-bold">JS</span>
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-medium">John Smith</h3>
-                          <p className="text-sm text-muted-foreground">CTO & Co-Founder</p>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Previously led engineering teams at Top Tech Co. Expert in AI and machine learning. PhD in
-                            Computer Science from MIT.
-                          </p>
-                        </div>
+                      {/* Team image placeholder */}
+                      <div
+                        className="w-full bg-muted rounded-lg overflow-hidden relative"
+                        style={{ paddingBottom: "56.25%" }}
+                      >
+                        <Image
+                          src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/10.png"
+                          alt="HR Monster Team"
+                          fill
+                          className="object-cover"
+                        />
                       </div>
 
-                      <div className="flex flex-col md:flex-row gap-4">
-                        <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
-                          <span className="text-2xl font-bold">AJ</span>
+                      {/* Partnerships image moved here */}
+                      <div
+                        className="w-full bg-muted rounded-lg overflow-hidden relative"
+                        style={{ paddingBottom: "56.25%" }}
+                      >
+                        <Image
+                          src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/partnerships.jpg"
+                          alt="Partnerships"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+
+                      {/* Video grid - 2 videos in row 1, 3 videos in row 2 */}
+                      <div className="mt-8 space-y-6">
+                        {/* Row 1 - 2 videos */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Video 1 */}
+                          <div className="aspect-video rounded-lg overflow-hidden">
+                            <iframe
+                              width="100%"
+                              height="100%"
+                              src="https://www.youtube.com/embed/s2AMcpwvC1M"
+                              title="Pascal Henry Interview"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              className="w-full h-full"
+                            ></iframe>
+                          </div>
+
+                          {/* Video 2 */}
+                          <div className="aspect-video rounded-lg overflow-hidden">
+                            <iframe
+                              width="100%"
+                              height="100%"
+                              src="https://www.youtube.com/embed/ndLIZ5U-ohg"
+                              title="HR Monster Demo"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              className="w-full h-full"
+                            ></iframe>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-lg font-medium">Alex Johnson</h3>
-                          <p className="text-sm text-muted-foreground">CFO</p>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            20+ years of financial experience in tech startups and venture capital. Previously CFO at
-                            Successful Startup Inc. and Partner at VC Firm.
-                          </p>
+
+                        {/* Row 2 - 3 videos */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {/* Video 3 */}
+                          <div className="aspect-video rounded-lg overflow-hidden">
+                            <iframe
+                              width="100%"
+                              height="100%"
+                              src="https://www.youtube.com/embed/V49AJhtKME8"
+                              title="Product Walkthrough"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              className="w-full h-full"
+                            ></iframe>
+                          </div>
+
+                          {/* Video 4 */}
+                          <div className="aspect-video rounded-lg overflow-hidden">
+                            <iframe
+                              width="100%"
+                              height="100%"
+                              src="https://www.youtube.com/embed/EyyNJJVkzR4"
+                              title="Quick Feature Demo"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              className="w-full h-full"
+                            ></iframe>
+                          </div>
+
+                          {/* Video 5 */}
+                          <div className="aspect-video rounded-lg overflow-hidden">
+                            <iframe
+                              width="100%"
+                              height="100%"
+                              src="https://www.youtube.com/embed/V0QdkSzMx6A"
+                              title="Additional Feature Demo"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              className="w-full h-full"
+                            ></iframe>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </ExpandableSection>
 
+                  <ExpandableSection title="Track record" sectionId="traction">
+                    <div
+                      className="w-full bg-muted rounded-lg overflow-hidden relative"
+                      style={{ paddingBottom: "56.25%" }}
+                    >
+                      <Image
+                        src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/traction.jpg"
+                        alt="Track record"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  </ExpandableSection>
+
                   <ExpandableSection title="Partnerships" sectionId="partnerships">
-                    <div className="space-y-4">
-                      <p className="text-muted-foreground">
-                        We've established strategic partnerships to accelerate our growth and enhance our product
-                        offerings:
-                      </p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="border rounded-lg p-4">
-                          <h4 className="font-medium">Technology Partners</h4>
-                          <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-                            <li>• Cloud Infrastructure Provider - Premium Partner</li>
-                            <li>• AI Research Institute - Research Collaboration</li>
-                            <li>• Enterprise Software Company - Integration Partner</li>
-                          </ul>
-                        </div>
-                        <div className="border rounded-lg p-4">
-                          <h4 className="font-medium">Distribution Partners</h4>
-                          <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-                            <li>• Global Consulting Firm - Implementation Partner</li>
-                            <li>• Industry Association - Preferred Vendor</li>
-                            <li>• Regional Resellers - Channel Partners</li>
-                          </ul>
-                        </div>
+                    <div className="space-y-8">
+                      <div
+                        className="w-full bg-muted rounded-lg overflow-hidden relative"
+                        style={{ paddingBottom: "56.25%" }}
+                      >
+                        <Image
+                          src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/17.png"
+                          alt="Strategic Partnerships"
+                          fill
+                          className="object-cover"
+                        />
                       </div>
                     </div>
                   </ExpandableSection>
 
                   <ExpandableSection title="Finance" sectionId="finance">
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Revenue Projections</h4>
-                          <div className="border rounded-lg overflow-hidden">
-                            <table className="w-full">
-                              <thead className="bg-muted/50">
-                                <tr>
-                                  <th className="text-left p-2 text-sm font-medium">Metric</th>
-                                  <th className="text-right p-2 text-sm font-medium">Year 1</th>
-                                  <th className="text-right p-2 text-sm font-medium">Year 2</th>
-                                  <th className="text-right p-2 text-sm font-medium">Year 3</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y">
-                                <tr>
-                                  <td className="p-2 text-sm">Revenue</td>
-                                  <td className="p-2 text-sm text-right">$2.5M</td>
-                                  <td className="p-2 text-sm text-right">$6.8M</td>
-                                  <td className="p-2 text-sm text-right">$15.2M</td>
-                                </tr>
-                                <tr>
-                                  <td className="p-2 text-sm">YoY Growth</td>
-                                  <td className="p-2 text-sm text-right">-</td>
-                                  <td className="p-2 text-sm text-right">172%</td>
-                                  <td className="p-2 text-sm text-right">124%</td>
-                                </tr>
-                                <tr>
-                                  <td className="p-2 text-sm">Gross Margin</td>
-                                  <td className="p-2 text-sm text-right">68%</td>
-                                  <td className="p-2 text-sm text-right">72%</td>
-                                  <td className="p-2 text-sm text-right">75%</td>
-                                </tr>
-                                <tr>
-                                  <td className="p-2 text-sm">EBITDA</td>
-                                  <td className="p-2 text-sm text-right">-$1.8M</td>
-                                  <td className="p-2 text-sm text-right">-$0.5M</td>
-                                  <td className="p-2 text-sm text-right">$3.2M</td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Key Projected KPIs</h4>
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-sm">Net Revenue Retention</span>
-                              <span className="text-sm font-medium">115% → 125%</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm">Gross Retention</span>
-                              <span className="text-sm font-medium">85% → 92%</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm">LTV:CAC Ratio</span>
-                              <span className="text-sm font-medium">2.5x → 4.2x</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm">Rule of 40 Score (Year 3)</span>
-                              <span className="text-sm font-medium">145%</span>
-                            </div>
-                          </div>
-                          <div className="h-48 bg-muted/50 rounded-lg mt-4 flex items-center justify-center">
-                            [Revenue Growth Chart]
-                          </div>
-                        </div>
+                    <div className="space-y-8">
+                      <div
+                        className="w-full bg-muted rounded-lg overflow-hidden relative"
+                        style={{ paddingBottom: "56.25%" }}
+                      >
+                        <Image
+                          src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/19_1.png"
+                          alt="Financial Projections"
+                          fill
+                          className="object-cover"
+                        />
                       </div>
-                      <div>
-                        <h4 className="text-sm font-medium mb-2">Use of Funds</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                          <div className="border rounded-lg p-3">
-                            <div className="text-lg font-bold">40%</div>
-                            <div className="text-xs text-muted-foreground">Product Development</div>
-                          </div>
-                          <div className="border rounded-lg p-3">
-                            <div className="text-lg font-bold">30%</div>
-                            <div className="text-xs text-muted-foreground">Sales & Marketing</div>
-                          </div>
-                          <div className="border rounded-lg p-3">
-                            <div className="text-lg font-bold">20%</div>
-                            <div className="text-xs text-muted-foreground">Team Expansion</div>
-                          </div>
-                          <div className="border rounded-lg p-3">
-                            <div className="text-lg font-bold">10%</div>
-                            <div className="text-xs text-muted-foreground">Operations</div>
-                          </div>
-                        </div>
+                      <div
+                        className="w-full bg-muted rounded-lg overflow-hidden relative"
+                        style={{ paddingBottom: "56.25%" }}
+                      >
+                        <Image
+                          src="https://cdn.jsdelivr.net/gh/aijesseltoncapital/static@main/20.png"
+                          alt="Funding Allocation"
+                          fill
+                          className="object-cover"
+                        />
                       </div>
                     </div>
                   </ExpandableSection>
@@ -496,6 +659,12 @@ export default function ProjectPage() {
                     />
                   </ExpandableSection>
                 </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="fundraising" className="mt-0">
+              <div className="max-w-3xl mx-auto">
+                <FundraisingFormatCard />
               </div>
             </TabsContent>
 
@@ -513,11 +682,12 @@ export default function ProjectPage() {
                   <div>
                     <h3 className="text-lg font-medium">SAFE Agreement Terms</h3>
                     <ul className="list-disc pl-5 mt-2 text-muted-foreground">
-                      <li>Valuation Cap: $15 million</li>
-                      <li>Discount Rate: 20%</li>
-                      <li>Minimum Investment: $25,000</li>
-                      <li>Target Raise: $1,000,000</li>
-                      <li>Pro-rata Rights: Yes</li>
+                      <li>Round: Pre-seed</li>
+                      <li>Valuation: SGD 5,000,000</li>
+                      <li>Funding Amount: SGD 500,000</li>
+                      <li>Deadline: Rolling Close</li>
+                      <li>Instrument: SAFE</li>
+                      <li>Minimum Investment: SGD 5,000</li>
                     </ul>
                   </div>
 
@@ -526,7 +696,7 @@ export default function ProjectPage() {
                     <p className="text-muted-foreground mt-2">
                       This investment opportunity is only available to accredited investors. The SAFE (Simple Agreement
                       for Future Equity) is a legally binding contract that provides rights to future equity in the
-                      company.
+                      company legally binding contract that provides rights to future equity in the company.
                     </p>
                   </div>
                 </CardContent>
@@ -541,37 +711,18 @@ export default function ProjectPage() {
                 </CardHeader>
                 <CardContent className="space-y-6 px-0">
                   <div className="space-y-4">
-                    <div className="border-b pb-4">
-                      <h3 className="font-medium">Q2 Progress Report</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        We're excited to share our Q2 progress, including new partnerships and product developments.
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-2">June 15, 2023</p>
-                    </div>
-                    <div className="border-b pb-4">
-                      <h3 className="font-medium">New Team Members</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        We've expanded our team with key hires in engineering and marketing.
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-2">May 28, 2023</p>
-                    </div>
                     <div>
                       <h3 className="font-medium">Funding Round Announcement</h3>
                       <p className="text-sm text-muted-foreground mt-1">
                         We're thrilled to announce our new funding round to accelerate growth and product development.
                       </p>
-                      <p className="text-xs text-muted-foreground mt-2">May 1, 2023</p>
+                      <p className="text-xs text-muted-foreground mt-2">April 1, 2025</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
           </Tabs>
-        </div>
-
-        {/* Right sidebar - Fundraising Format */}
-        <div className="lg:col-span-4 space-y-6">
-          <FundraisingFormatCard />
         </div>
       </div>
 
@@ -603,4 +754,3 @@ export default function ProjectPage() {
     </div>
   )
 }
-

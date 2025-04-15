@@ -25,13 +25,13 @@ export function ExpandableSection({
 
   return (
     <div
-      className={cn("border rounded-lg mb-6", className)}
+      className={cn("mb-6", className)}
       data-section={sectionId}
       id={sectionId} // Add an ID to make scrolling to the section more reliable
     >
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-4 text-left font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-t-lg"
+        className="w-full flex items-center justify-between py-3 text-left font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg"
       >
         <h3 className="text-lg">{title}</h3>
         {isExpanded ? (
@@ -40,8 +40,7 @@ export function ExpandableSection({
           <ChevronDown className="h-5 w-5 text-muted-foreground" />
         )}
       </button>
-      {isExpanded && <div className="p-4 pt-0 border-t">{children}</div>}
+      {isExpanded && <div className="py-4">{children}</div>}
     </div>
   )
 }
-

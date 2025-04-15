@@ -154,4 +154,3 @@ export function BankTransferUpload({ investmentAmount, referenceNumber, onUpload
     </Card>
   )
 }
-

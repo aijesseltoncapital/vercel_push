@@ -28,6 +28,11 @@ export function MainNav({ className }: MainNavProps) {
       active: pathname === "/admin/investors" || pathname.startsWith("/admin/investors/"),
     },
     {
+      href: "/admin/profile",
+      label: "Profile",
+      active: pathname === "/admin/profile",
+    },
+    {
       href: "/admin/documents",
       label: "Documents",
       active: pathname === "/admin/documents",
@@ -46,24 +51,24 @@ export function MainNav({ className }: MainNavProps) {
 
   const investorRoutes = [
     {
-      href: "/investor/project",
-      label: "Project",
-      active: pathname === "/investor/project",
-    },
-    {
-      href: "/investor/invest",
-      label: "Invest",
-      active: pathname === "/investor/invest",
-    },
-    {
       href: "/investor/kyc",
       label: "KYC Verification",
       active: pathname === "/investor/kyc",
     },
     {
-      href: "/investor/documents",
-      label: "Documents",
-      active: pathname === "/investor/documents",
+      href: "/investor/project",
+      label: "Project",
+      active: pathname === "/investor/project",
+    },
+    {
+      href: "/investor/contracts",
+      label: "Contracts",
+      active: pathname === "/investor/contracts",
+    },
+    {
+      href: "/investor/invest",
+      label: "Invest",
+      active: pathname === "/investor/invest",
     },
   ]
 
@@ -86,4 +91,3 @@ export function MainNav({ className }: MainNavProps) {
     </nav>
   )
 }
-

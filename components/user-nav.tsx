@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/lib/auth-provider"
 import { Badge } from "@/components/ui/badge"
-import { ShieldCheck, AlertTriangle } from "lucide-react"
+import { ShieldCheck, AlertTriangle, Clock } from "lucide-react"
 
 export function UserNav() {
   const { user, logout } = useAuth()
@@ -22,18 +22,25 @@ export function UserNav() {
 
   // Get KYC status indicator
   const getKycStatusIndicator = () => {
-    switch (user.kycStatus) {
-      case "approved":
+    switch (user.onboardingStatus.kyc) {
+      case "submitted":
         return (
           <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300 flex items-center">
             <ShieldCheck className="h-3 w-3 mr-1" />
             KYC Verified
           </Badge>
         )
-      case "pending":
+      case "not_submitted":
         return (
           <Badge variant="outline" className="text-yellow-800 dark:text-yellow-300 flex items-center">
             <AlertTriangle className="h-3 w-3 mr-1" />
+            KYC Not Submitted
+          </Badge>
+        )
+      case "pending":
+        return (
+          <Badge variant="outline" className="text-yellow-800 dark:text-yellow-300 flex items-center">
+            <Clock className="h-3 w-3 mr-1" />
             KYC Pending
           </Badge>
         )
@@ -64,7 +71,7 @@ export function UserNav() {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent className="w-56 z-[110]" align="end" forceMount side="top">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.name}</p>
@@ -74,11 +81,11 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          {user.role === "investor" && user.kycStatus !== "approved" && (
+          <DropdownMenuItem onClick={() => (window.location.href = "/investor/dashboard")}>Dashboard</DropdownMenuItem>
+          {user.role === "investor" && user.onboardingStatus.kyc !== "submitted" && (
             <DropdownMenuItem onClick={() => (window.location.href = "/investor/kyc")}>Complete KYC</DropdownMenuItem>
           )}
-          <DropdownMenuItem>Settings</DropdownMenuItem>
+          {user.role !== "admin" && <DropdownMenuItem>Settings</DropdownMenuItem>}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
@@ -86,4 +93,3 @@ export function UserNav() {
     </DropdownMenu>
   )
 }
-

@@ -107,7 +107,7 @@ export default function InvestorDetailPage() {
       case "Pending":
       case "Pending Approval":
       case "Uploaded":
-        return <Badge variant={status === "Verified" ? "default" : "secondary"}>{status}</Badge>
+        return <Badge variant="secondary">{status}</Badge>
       case "SAFE_UNSIGNED":
       case "Unsigned":
         return (
@@ -407,4 +407,3 @@ export default function InvestorDetailPage() {
     </div>
   )
 }
-

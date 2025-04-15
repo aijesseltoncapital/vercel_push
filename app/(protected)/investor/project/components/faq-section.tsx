@@ -16,7 +16,11 @@ export function FaqSection() {
     {
       question: "What is the minimum investment amount?",
       answer:
-        "The minimum investment amount is $25,000. This is structured as a SAFE (Simple Agreement for Future Equity) with a $15 million valuation cap and a 20% discount rate.",
+        "The minimum investment amount is SGD 5,000. This is structured as a SAFE (Simple Agreement for Future Equity) with a SGD 5,000,000 valuation cap.",
+    },
+    {
+      question: "What round of funding is this?",
+      answer: "This is a pre-seed funding round with a target raise of SGD 500,000.",
     },
     {
       question: "How does the SAFE agreement work?",
@@ -41,7 +45,7 @@ export function FaqSection() {
     {
       question: "What rights do I have as an investor?",
       answer:
-        "As a SAFE holder, you will receive information rights to quarterly updates. Once converted to equity, you will have pro-rata rights to maintain your ownership percentage in future rounds. You will not have voting rights until the SAFE converts to equity.",
+        "As a SAFE holder, you will receive information rights to quarterly updates. Once converted to equity, you may have additional rights as specified in the SAFE agreement.",
     },
     {
       question: "How will I receive updates about the company's progress?",
@@ -53,6 +57,11 @@ export function FaqSection() {
       answer:
         "In the event of an acquisition before conversion, you will have the option to receive either a cash payment equal to your investment amount or convert your SAFE into equity at the valuation cap, whichever would result in a greater return.",
     },
+    {
+      question: "Is there a deadline for this investment opportunity?",
+      answer:
+        "This is a rolling close, which means we accept investments on an ongoing basis until we reach our funding target of SGD 500,000.",
+    },
   ]
 
   const toggleFaq = (index: number) => {
@@ -63,7 +72,7 @@ export function FaqSection() {
     <Card>
       <CardHeader>
         <CardTitle>Frequently Asked Questions</CardTitle>
-        <CardDescription>Common questions about investing in Tech Startup XYZ</CardDescription>
+        <CardDescription>Common questions about investing in HR Monster</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {faqs.map((faq, index) => (
@@ -90,4 +99,3 @@ export function FaqSection() {
     </Card>
   )
 }
-

@@ -46,9 +46,11 @@ export function DocumentViewer({
   }
 
   const handleDownload = (document: Document) => {
-    // In a real app, this would download the document
-    console.log(`Downloading ${document.name}`)
-    // window.open(document.downloadUrl, '_blank')
+    // Open the PDF link in a new tab
+    window.open(
+      "https://raw.githubusercontent.com/aijesseltoncapital/static/refs/heads/main/HR%20Monster_deck%20.pdf",
+      "_blank",
+    )
   }
 
   const getDocumentTypeIcon = (type: string) => {
@@ -97,7 +99,7 @@ export function DocumentViewer({
           <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent>
-          {documents.length === 0 ? (
+          {false ? (
             <div className="text-center py-8 text-muted-foreground">No documents available</div>
           ) : (
             <Table>
@@ -110,30 +112,65 @@ export function DocumentViewer({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {documents.map((document) => (
-                  <TableRow key={document.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center">
-                        {getDocumentTypeIcon(document.type)}
-                        <span className="ml-2">{document.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getDocumentTypeBadge(document.type)}</TableCell>
-                    <TableCell>{document.uploadDate}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button variant="ghost" size="sm" onClick={() => handleViewDocument(document)}>
-                          <Eye className="h-4 w-4" />
-                          <span className="sr-only">View</span>
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDownload(document)}>
-                          <Download className="h-4 w-4" />
-                          <span className="sr-only">Download</span>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                <TableRow>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center">
+                      <FileText className="h-4 w-4 text-blue-500" />
+                      <span className="ml-2">Pitch Deck</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-800"
+                    >
+                      Presentation
+                    </Badge>
+                  </TableCell>
+                  <TableCell>2025-03-29</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          handleViewDocument({
+                            id: 1,
+                            name: "Pitch Deck",
+                            type: "presentation",
+                            description: "Company overview and investment opportunity",
+                            uploadDate: "2025-03-29",
+                            size: "3.5 MB",
+                            downloadUrl: "",
+                            viewUrl: "",
+                          })
+                        }
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="sr-only">View</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          handleDownload({
+                            id: 1,
+                            name: "Pitch Deck",
+                            type: "presentation",
+                            description: "Company overview and investment opportunity",
+                            uploadDate: "2025-03-29",
+                            size: "3.5 MB",
+                            downloadUrl: "",
+                            viewUrl: "",
+                          })
+                        }
+                      >
+                        <Download className="h-4 w-4" />
+                        <span className="sr-only">Download</span>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           )}
@@ -163,12 +200,23 @@ export function DocumentViewer({
               </div>
             </div>
 
-            <div className="border rounded-lg p-4 bg-muted/30 flex items-center justify-center h-64">
-              <div className="text-center">
-                <FileText className="h-16 w-16 mx-auto text-muted-foreground" />
-                <p className="mt-2 font-medium">{selectedDocument?.name}</p>
-                <p className="text-sm text-muted-foreground">{selectedDocument?.size}</p>
-              </div>
+            <div className="border rounded-lg overflow-hidden bg-muted/30 h-[500px]">
+              {selectedDocument ? (
+                <iframe
+                  src="https://www.canva.com/design/DAGiJWJ9lQo/37J5y0k0aXKip_0VagTP4Q/view?embed"
+                  title={selectedDocument.name}
+                  className="w-full h-full"
+                  allow="fullscreen"
+                  allowFullScreen
+                ></iframe>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <FileText className="h-16 w-16 mx-auto text-muted-foreground" />
+                    <p className="mt-2 font-medium text-muted-foreground">Select a document to preview</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -177,7 +225,7 @@ export function DocumentViewer({
             </Button>
             <Button onClick={() => selectedDocument && handleDownload(selectedDocument)}>
               <Download className="mr-2 h-4 w-4" />
-              Download
+              Download PDF
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -185,4 +233,3 @@ export function DocumentViewer({
     </>
   )
 }
-

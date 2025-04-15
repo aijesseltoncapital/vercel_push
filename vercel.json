@@ -1,5 +1,6 @@
 {
-    "rewrites": [
-      { "source": "/(.*)", "destination": "/api/index" }
-    ]
-  }
+  "rewrites": [
+    { "source": "/hr-monster/:match*", "destination": "https://hr-monster.vercel.app/:match*" },
+    { "source": "/:match*", "destination": "https://fundcrane.vercel.app/:match*" }
+  ]
+}

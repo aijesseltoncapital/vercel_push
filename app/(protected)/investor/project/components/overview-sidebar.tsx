@@ -14,17 +14,34 @@ export function OverviewSidebar({ className }: OverviewSidebarProps) {
   useEffect(() => {
     const handleScroll = () => {
       const sections = document.querySelectorAll("[data-section]")
-      const scrollPosition = window.scrollY + 100 // Offset for header
+      const scrollPosition = window.scrollY + 150 // Increased offset for better detection
+
+      // Find the section that is currently most visible in the viewport
+      let currentSection = ""
+      let maxVisibility = 0
 
       sections.forEach((section) => {
-        const sectionTop = (section as HTMLElement).offsetTop
-        const sectionHeight = (section as HTMLElement).offsetHeight
+        const sectionEl = section as HTMLElement
+        const sectionTop = sectionEl.offsetTop
+        const sectionHeight = sectionEl.offsetHeight
         const sectionId = section.getAttribute("data-section")
 
-        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight && sectionId) {
-          setActiveSection(sectionId)
+        // Calculate how much of the section is visible
+        const sectionBottom = sectionTop + sectionHeight
+        const visibleTop = Math.max(scrollPosition, sectionTop)
+        const visibleBottom = Math.min(scrollPosition + window.innerHeight, sectionBottom)
+        const visibleHeight = Math.max(0, visibleBottom - visibleTop)
+
+        // If this section has more visible area than previous max, it becomes the active section
+        if (visibleHeight > maxVisibility && sectionId) {
+          maxVisibility = visibleHeight
+          currentSection = sectionId
         }
       })
+
+      if (currentSection) {
+        setActiveSection(currentSection)
+      }
     }
 
     window.addEventListener("scroll", handleScroll)
@@ -38,13 +55,16 @@ export function OverviewSidebar({ className }: OverviewSidebarProps) {
   const scrollToSection = (sectionId: string) => {
     const section = document.querySelector(`[data-section="${sectionId}"]`)
     if (section) {
-      const offsetY = 100; // Adjust this value to your desired offset (e.g., header height)
-      const sectionTop = (section as HTMLElement).getBoundingClientRect().top + window.pageYOffset;
-      
+      const offsetY = 100 // Adjust this value to your desired offset (e.g., header height)
+      const sectionTop = (section as HTMLElement).getBoundingClientRect().top + window.pageYOffset
+
+      // Set active section immediately when clicked
+      setActiveSection(sectionId)
+
       window.scrollTo({
         top: sectionTop - offsetY,
-        behavior: "smooth"
-      });
+        behavior: "smooth",
+      })
     }
   }
 
@@ -52,10 +72,10 @@ export function OverviewSidebar({ className }: OverviewSidebarProps) {
     { id: "about", label: "About Us" },
     { id: "problem", label: "Problem" },
     { id: "solution", label: "Solution" },
-    { id: "traction", label: "Traction" },
-    { id: "customers", label: "Customers" },
+    { id: "market-overview", label: "Market Overview" },
     { id: "goals", label: "Strategic Goals" },
     { id: "team", label: "Team" },
+    { id: "traction", label: "Track record" },
     { id: "partnerships", label: "Partnerships" },
     { id: "finance", label: "Finance" },
     { id: "attachments", label: "Attachments" },
@@ -80,4 +100,3 @@ export function OverviewSidebar({ className }: OverviewSidebarProps) {
     </nav>
   )
 }
-

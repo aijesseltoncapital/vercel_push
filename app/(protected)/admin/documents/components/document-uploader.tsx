@@ -3,12 +3,13 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useAuth } from "@/lib/auth-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Upload, File, X } from "lucide-react"
+import { Upload, File, X, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface DocumentUploaderProps {
@@ -16,6 +17,7 @@ interface DocumentUploaderProps {
 }
 
 export function DocumentUploader({ onUploadSuccess }: DocumentUploaderProps) {
+  const { user } = useAuth()
   const { toast } = useToast()
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -24,6 +26,7 @@ export function DocumentUploader({ onUploadSuccess }: DocumentUploaderProps) {
   const [file, setFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -89,8 +92,9 @@ export function DocumentUploader({ onUploadSuccess }: DocumentUploaderProps) {
     setFile(null)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setUploadError(null)
 
     if (!file) {
       toast({
@@ -130,19 +134,60 @@ export function DocumentUploader({ onUploadSuccess }: DocumentUploaderProps) {
 
     setIsUploading(true)
 
-    // In a real app, this would upload the file to a server
-    setTimeout(() => {
-      const newDocument = {
+    try {
+      // Create form data for the API call
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("documentType", type)
+      formData.append("user_name", user?.name || "Anonymous")
+      formData.append("user_email", user?.email || "anonymous@example.com")
+      formData.append("description", description)
+      formData.append("category", category)
+
+      // Send the file to our Next.js API endpoint which proxies to the Flask backend
+      const response = await fetch("/api/tos/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `Upload failed: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      // Call the success handler with the document data
+      onUploadSuccess({
         name,
         description,
         type,
         category,
         size: formatFileSize(file.size),
-      }
+        url: data.url || "#",
+        id: data.id || `temp-${Date.now()}`,
+        uploadDate: new Date().toISOString().split("T")[0],
+        status: "published",
+        version: "1.0",
+      })
 
-      onUploadSuccess(newDocument)
+      // Reset the form
+      setName("")
+      setDescription("")
+      setType("")
+      setCategory("")
+      setFile(null)
+    } catch (error: any) {
+      console.error("Upload error:", error)
+      setUploadError(error.message || "Failed to upload document")
+      toast({
+        title: "Upload failed",
+        description: error.message || "An error occurred while uploading the document",
+        variant: "destructive",
+      })
+    } finally {
       setIsUploading(false)
-    }, 1500)
+    }
   }
 
   const formatFileSize = (bytes: number): string => {
@@ -183,7 +228,7 @@ export function DocumentUploader({ onUploadSuccess }: DocumentUploaderProps) {
               <Upload className="h-10 w-10 text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground mb-2">Drag and drop your file here, or click to browse</p>
               <p className="text-xs text-muted-foreground mb-4">
-                Supported formats: PDF, DOCX, XLSX, PPTX, CSV, TXT (max 10MB)
+                Supported formats: PDF, DOCX, XLSX, PPTX, CSV, TXT, JPG, PNG (max 16MB)
               </p>
               <Button
                 variant="outline"
@@ -200,7 +245,7 @@ export function DocumentUploader({ onUploadSuccess }: DocumentUploaderProps) {
             type="file"
             className="hidden"
             onChange={handleFileChange}
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.jpg,.jpeg,.png"
           />
         </div>
       </div>
@@ -250,16 +295,18 @@ export function DocumentUploader({ onUploadSuccess }: DocumentUploaderProps) {
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter a brief description of the document"
+          placeholder="Enter a description of the document"
           rows={3}
         />
       </div>
 
-      <div className="flex justify-end space-x-2 pt-4">
+      {uploadError && <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">{uploadError}</div>}
+
+      <div className="flex justify-end">
         <Button type="submit" disabled={isUploading}>
           {isUploading ? (
             <>
-              <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"></span>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Uploading...
             </>
           ) : (
@@ -273,4 +320,3 @@ export function DocumentUploader({ onUploadSuccess }: DocumentUploaderProps) {
     </form>
   )
 }
-

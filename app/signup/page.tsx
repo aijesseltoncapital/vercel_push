@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-provider"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { Eye, EyeOff } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function SignupPage() {
   const [name, setName] = useState("")
@@ -19,8 +20,52 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [inviteToken, setInviteToken] = useState<string | null>(null)
+  const [tokenSource, setTokenSource] = useState<string | null>(null)
   const { signup } = useAuth()
   const { toast } = useToast()
+
+  // Get the invite token from cookies when the component mounts
+  useEffect(() => {
+    // Function to parse cookies
+    const getCookieValue = (name: string): string | null => {
+      const value = `; ${document.cookie}`
+      const parts = value.split(`; ${name}=`)
+      if (parts.length === 2) {
+        const cookieValue = parts.pop()?.split(";").shift() || null
+        return cookieValue
+      }
+      return null
+    }
+
+    // Try to get the token from the cookie
+    const tokenFromCookie = getCookieValue("invite_token")
+
+    if (tokenFromCookie) {
+      setInviteToken(tokenFromCookie)
+      setTokenSource("cookie")
+
+      // Show a toast notification that we found a token
+      toast({
+        title: "Invitation detected",
+        description: `Using invitation token: ${tokenFromCookie.substring(0, 8)}...`,
+      })
+    } else {
+      // Check URL parameters as a fallback
+      const urlParams = new URLSearchParams(window.location.search)
+      const tokenFromUrl = urlParams.get("token")
+
+      if (tokenFromUrl) {
+        setInviteToken(tokenFromUrl)
+        setTokenSource("url")
+
+        toast({
+          title: "Invitation detected",
+          description: `Using invitation token from URL: ${tokenFromUrl.substring(0, 8)}...`,
+        })
+      }
+    }
+  }, [toast])
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -75,14 +120,25 @@ export default function SignupPage() {
     setIsLoading(true)
 
     try {
-      // Use a direct signup without an invite token
-      await signup("direct_signup", name, email, password)
+      // Store the email for verification page
+      localStorage.setItem("pendingVerificationEmail", email)
+
+      // Use the invite token if available, otherwise use direct_signup
+      const tokenToUse = inviteToken || "direct_signup"
+      await signup(tokenToUse, name, email, password)
+
+      // Clear the invite token cookie after successful signup
+      if (tokenSource === "cookie") {
+        document.cookie = "invite_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+      }
+
       toast({
         title: "Account created",
-        description: "Welcome to the investment platform.",
+        description: "Please check your email to verify your account.",
       })
       // Redirect is handled in the auth provider
     } catch (error) {
+      console.error("Signup error:", error)
       toast({
         title: "Registration failed",
         description: "There was an error creating your account.",
@@ -98,10 +154,22 @@ export default function SignupPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-          <CardDescription>Enter your information to create an investor account</CardDescription>
+          <CardDescription>
+            {inviteToken
+              ? "Complete your registration with your invitation"
+              : "Enter your information to create an investor account"}
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {inviteToken && (
+              <Alert>
+                <AlertDescription>
+                  You're signing up with an invitation token: {inviteToken.substring(0, 8)}...
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input id="name" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required />
@@ -189,4 +257,3 @@ export default function SignupPage() {
     </div>
   )
 }
-
