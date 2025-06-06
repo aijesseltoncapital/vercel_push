@@ -77,14 +77,6 @@ export function FundraisingFormatCard() {
             <p className="text-base">N/A</p>
           </div>
         </div>
-
-        <div className="pt-2">
-          <h4 className="text-sm font-medium mb-2">Conversion Events</h4>
-          <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-5">
-            <li>Equity Financing: Converts at the lower of the valuation cap or discount rate</li>
-            <li>Liquidity Event: Investor can choose to cash out or convert to equity</li>
-          </ul>
-        </div>
       </CardContent>
     </Card>
   )

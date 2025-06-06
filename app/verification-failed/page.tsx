@@ -24,7 +24,7 @@ export default function VerificationFailedPage() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <Button asChild className="w-full">
-            <Link href="/login">Return to Login</Link>
+            <Link href="/auth/login">Return to Login</Link>
           </Button>
         </CardFooter>
       </Card>

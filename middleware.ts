@@ -9,7 +9,7 @@ export function middleware(request: NextRequest) {
     const token = pathname.split("/").pop()
 
     // Create a new URL for the redirect
-    const signupUrl = new URL("/signup", request.url)
+    const signupUrl = new URL("/auth/signup", request.url)
 
     // Add the token as a query parameter
     signupUrl.searchParams.set("token", token || "")
@@ -44,7 +44,7 @@ export function middleware(request: NextRequest) {
 
   // Handle logout requests that need server-side cookie clearing
   if (pathname === "/api/logout") {
-    const response = NextResponse.redirect(new URL("/login", request.url))
+    const response = NextResponse.redirect(new URL("/auth/login", request.url))
 
     // Clear all authentication cookies
     response.cookies.set("invite_token", "", {

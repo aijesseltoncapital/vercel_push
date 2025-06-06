@@ -50,7 +50,7 @@ export default function PaymentOptionsPage() {
   const calculateMonthlyPayment = () => {
     if (paymentOption === "full") return investmentAmount
     // For installment plan, divide by 12 and round to 2 decimal places
-    return Math.round((investmentAmount / 12) * 100) / 100
+    return Math.round((investmentAmount / 12) * 1000) / 1000
   }
 
   const handleContinue = async () => {
@@ -192,14 +192,18 @@ export default function PaymentOptionsPage() {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={() => router.push("/investor/project")}>
+        <CardFooter className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-0">
+          <Button
+            variant="outline"
+            onClick={() => router.push("/investor/project")}
+            className="w-full sm:w-auto text-xs sm:text-sm"
+          >
             Back to Project
           </Button>
-          <Button onClick={handleContinue} disabled={isSubmitting}>
+          <Button onClick={handleContinue} disabled={isSubmitting} className="w-full sm:w-auto text-xs sm:text-sm">
             {isSubmitting ? (
               <>
-                <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"></span>
+                <span className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"></span>
                 Processing...
               </>
             ) : (

@@ -14,5 +14,5 @@ export default function InvitePage({ params }: { params: { token: string } }) {
   })
 
   // Use the newer redirect pattern
-  return redirect("/signup")
+  return redirect("/auth/signup")
 }

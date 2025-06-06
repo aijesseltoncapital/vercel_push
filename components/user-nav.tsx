@@ -14,9 +14,11 @@ import {
 import { useAuth } from "@/lib/auth-provider"
 import { Badge } from "@/components/ui/badge"
 import { ShieldCheck, AlertTriangle, Clock } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export function UserNav() {
   const { user, logout } = useAuth()
+  const router = useRouter()
 
   if (!user) return null
 
@@ -88,7 +90,14 @@ export function UserNav() {
           {user.role !== "admin" && <DropdownMenuItem>Settings</DropdownMenuItem>}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            logout()
+            router.push("/auth/login?logout=true")
+          }}
+        >
+          Log out
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

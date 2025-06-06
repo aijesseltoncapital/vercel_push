@@ -149,25 +149,6 @@ export function DocumentViewer({
                         <Eye className="h-4 w-4" />
                         <span className="sr-only">View</span>
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          handleDownload({
-                            id: 1,
-                            name: "Pitch Deck",
-                            type: "presentation",
-                            description: "Company overview and investment opportunity",
-                            uploadDate: "2025-03-29",
-                            size: "3.5 MB",
-                            downloadUrl: "",
-                            viewUrl: "",
-                          })
-                        }
-                      >
-                        <Download className="h-4 w-4" />
-                        <span className="sr-only">Download</span>
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

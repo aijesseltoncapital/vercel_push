@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -125,35 +124,37 @@ export default function LoginPage() {
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
 
-            <Tabs defaultValue="admin" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="admin">Admin</TabsTrigger>
-                <TabsTrigger value="investor">Investor</TabsTrigger>
-                <TabsTrigger value="new-investor">New Investor</TabsTrigger>
-              </TabsList>
-              <TabsContent value="admin" className="space-y-2">
-                <p className="text-xs text-muted-foreground text-center">Admin account with full access</p>
-                <Button variant="outline" className="w-full" onClick={() => handleDemoLogin("admin")}>
-                  Login as Admin
-                </Button>
-              </TabsContent>
-              <TabsContent value="investor" className="space-y-2">
-                <p className="text-xs text-muted-foreground text-center">Investor with KYC approval</p>
-                <Button variant="outline" className="w-full" onClick={() => handleDemoLogin("investor")}>
-                  Login as Approved Investor
-                </Button>
-              </TabsContent>
-              <TabsContent value="new-investor" className="space-y-2">
-                <p className="text-xs text-muted-foreground text-center">Investor without KYC approval</p>
-                <Button variant="outline" className="w-full" onClick={() => handleDemoLogin("new-investor")}>
-                  Login as New Investor
-                </Button>
-              </TabsContent>
-            </Tabs>
+            {/* 
+           <Tabs defaultValue="admin" className="w-full">
+             <TabsList className="grid w-full grid-cols-3">
+               <TabsTrigger value="admin">Admin</TabsTrigger>
+               <TabsTrigger value="investor">Investor</TabsTrigger>
+               <TabsTrigger value="new-investor">New Investor</TabsTrigger>
+             </TabsList>
+             <TabsContent value="admin" className="space-y-2">
+               <p className="text-xs text-muted-foreground text-center">Admin account with full access</p>
+               <Button variant="outline" className="w-full" onClick={() => handleDemoLogin("admin")}>
+                 Login as Admin
+               </Button>
+             </TabsContent>
+             <TabsContent value="investor" className="space-y-2">
+               <p className="text-xs text-muted-foreground text-center">Investor with KYC approval</p>
+               <Button variant="outline" className="w-full" onClick={() => handleDemoLogin("investor")}>
+                 Login as Approved Investor
+               </Button>
+             </TabsContent>
+             <TabsContent value="new-investor" className="space-y-2">
+               <p className="text-xs text-muted-foreground text-center">Investor without KYC approval</p>
+               <Button variant="outline" className="w-full" onClick={() => handleDemoLogin("new-investor")}>
+                 Login as New Investor
+               </Button>
+             </TabsContent>
+           </Tabs>
+           */}
 
             <div className="text-sm text-center text-muted-foreground">
               Don't have an account?{" "}
-              <Link href="/signup" className="text-primary underline-offset-4 hover:underline">
+              <Link href="/auth/signup" className="text-primary underline-offset-4 hover:underline">
                 Create Account
               </Link>
             </div>

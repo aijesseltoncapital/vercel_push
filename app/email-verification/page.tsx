@@ -122,7 +122,7 @@ export default function EmailVerificationPage() {
             {isResending ? "Sending..." : resendSuccess ? "Email sent" : "Resend verification email"}
           </Button>
           <div className="text-sm text-center text-muted-foreground">
-            <Link href="/login" className="flex items-center justify-center text-primary hover:underline">
+            <Link href="/auth/login" className="flex items-center justify-center text-primary hover:underline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to login
             </Link>

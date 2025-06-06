@@ -89,6 +89,94 @@ export default function InvestorsPage() {
   // Use the API-provided paginated list rather than client-side filtering
   const paginatedInvestors = investors
 
+  // Parse the onboarding status JSON string or object
+  const parseOnboardingStatus = (investor: any) => {
+    try {
+      // Check if test_onboarding_status exists
+      if (!investor || !investor.testOnboardingStatus) {
+        return {
+          kyc: "not_submitted",
+          nda: "not_signed",
+          contract: "not_signed",
+          investment: "not_started",
+        }
+      }
+
+      // If it's a string, parse it; otherwise, use the object directly
+      let status = investor.testOnboardingStatus
+      if (typeof status === "string") {
+        status = JSON.parse(status)
+      }
+
+      return {
+        kyc: status.kyc || "not_submitted",
+        nda: status.nda || "not_signed",
+        contract: status.contract || "not_signed",
+        investment: status.investment || "not_started",
+      }
+    } catch (error) {
+      console.error("Error parsing onboarding status:", error)
+      return {
+        kyc: "not_submitted",
+        nda: "not_signed",
+        contract: "not_signed",
+        investment: "not_started",
+      }
+    }
+  }
+
+  // Get badge for onboarding status values
+  const getOnboardingStatusBadge = (status: string, type: "kyc" | "nda" | "contract" | "investment") => {
+    // Define color schemes for different status values
+    const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      // KYC statuses
+      submitted: { label: "Submitted", variant: "secondary" },
+      not_submitted: { label: "Not Submitted", variant: "outline" },
+      rejected: { label: "Rejected", variant: "destructive" },
+
+      // NDA and contract statuses
+      signed: { label: "Signed", variant: "default" },
+      not_signed: { label: "Not Signed", variant: "outline" },
+      generated: { label: "Generated", variant: "secondary" },
+
+      // Investment statuses
+      not_started: { label: "Not Started", variant: "outline" },
+      pending: { label: "Pending", variant: "secondary" },
+      agreement_signed: { label: "Agreement Signed", variant: "default" },
+      completed: { label: "Completed", variant: "default" },
+      reviewing: { label: "Reviewing", variant: "secondary" },
+    }
+
+    // Customize label based on type
+    let customLabel = ""
+    if (type === "kyc" && status === "submitted") {
+      customLabel = "KYC Submitted"
+    } else if (type === "nda" && status === "signed") {
+      customLabel = "NDA Signed"
+    } else if (type === "contract" && status === "signed") {
+      customLabel = "Contract Signed"
+    }
+
+    const statusInfo = statusMap[status] || { label: status, variant: "outline" }
+
+    return (
+      <span
+        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+          statusInfo.variant === "default"
+            ? "bg-green-100 text-green-800"
+            : statusInfo.variant === "secondary"
+              ? "bg-yellow-100 text-yellow-800"
+              : statusInfo.variant === "destructive"
+                ? "bg-red-100 text-red-800"
+                : "bg-gray-100 text-gray-800"
+        }`}
+      >
+        {customLabel || statusInfo.label}
+      </span>
+    )
+  }
+
+  // Legacy status badge function for backward compatibility
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
       VERIFIED: { label: "Verified", variant: "default" },
@@ -99,6 +187,18 @@ export default function InvestorsPage() {
       PENDING_APPROVAL: { label: "Pending Approval", variant: "secondary" },
       FAILED: { label: "Failed", variant: "destructive" },
       NOT_STARTED: { label: "Not Started", variant: "outline" },
+
+      // Add compatibility with onboarding status values (lowercase)
+      submitted: { label: "Submitted", variant: "secondary" },
+      not_submitted: { label: "Not Submitted", variant: "outline" },
+      signed: { label: "Signed", variant: "default" },
+      not_signed: { label: "Not Signed", variant: "outline" },
+      generated: { label: "Generated", variant: "secondary" },
+      not_started: { label: "Not Started", variant: "outline" },
+      pending: { label: "Pending", variant: "secondary" },
+      agreement_signed: { label: "Agreement Signed", variant: "default" },
+      completed: { label: "Completed", variant: "default" },
+      reviewing: { label: "Reviewing", variant: "secondary" },
     }
 
     const statusInfo = statusMap[status] || { label: status, variant: "outline" }
@@ -307,7 +407,7 @@ export default function InvestorsPage() {
     // Handle PDFs
     if (fileExt === "pdf") {
       return (
-        <div className="w-full h-[500px] overflow-hidden">
+        <div className="w-full h-[400px] overflow-hidden">
           <iframe
             src={`${url}#toolbar=1&navpanes=1`}
             className="w-full h-full border-0 rounded-lg"
@@ -320,8 +420,8 @@ export default function InvestorsPage() {
     // Handle images
     if (["jpg", "jpeg", "png", "gif", "webp"].includes(fileExt)) {
       return (
-        <div className="w-full max-h-[500px] overflow-auto flex items-center justify-center bg-muted/30 rounded-lg">
-          <img src={url} alt={document.name} className="max-w-full max-h-[500px] object-contain" />
+        <div className="w-full max-h-[400px] overflow-auto flex items-center justify-center bg-muted/30 rounded-lg">
+          <img src={url} alt={document.name} className="max-w-full max-h-[400px] object-contain" />
         </div>
       )
     }
@@ -437,8 +537,8 @@ export default function InvestorsPage() {
         <Button onClick={handleExportData}>Export Data</Button>
       </div>
       <div className="flex gap-4 h-[calc(100vh-12rem)]">
-        {/* Left Panel - Investors List */}
-        <div className="w-[50%] flex flex-col">
+        {/* Left Panel - Investors List - 40% width */}
+        <div className="w-[50%] flex-shrink-0 flex flex-col">
           <div className="mb-2">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -457,48 +557,62 @@ export default function InvestorsPage() {
                 <Table>
                   <TableHeader className="sticky top-0 bg-background z-10">
                     <TableRow>
-                      <TableHead className="w-[25%]">Name</TableHead>
-                      <TableHead className="w-[18%]">KYC Status</TableHead>
-                      <TableHead className="w-[25%]">Payment</TableHead>
-                      <TableHead className="w-[32%]">Plan</TableHead>
+                      <TableHead className="w-1/5">Name</TableHead>
+                      <TableHead className="w-1/5">Payment Status</TableHead>
+                      <TableHead className="w-1/5">Plan</TableHead>
+                      <TableHead className="w-1/6">Login Count</TableHead>
+                      <TableHead className="w-1/4">Last Login</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedInvestors.map((investor) => (
-                      <TableRow
-                        key={investor.id}
-                        className={`cursor-pointer ${selectedInvestor?.id === investor.id ? "bg-muted" : ""}`}
-                        onClick={() => handleInvestorClick(investor)}
-                      >
-                        <TableCell className="font-medium">{investor.name}</TableCell>
-                        <TableCell>{getStatusBadge(investor.kycStatus)}</TableCell>
-                        <TableCell>{getStatusBadge(investor.paymentStatus)}</TableCell>
-                        <TableCell>
-                          {investor.kycStatus === "REJECTED" ? (
-                            <Badge
-                              variant="destructive"
-                              className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300"
-                            >
-                              <XCircle className="h-3 w-3 mr-1" />
-                              KYC Rejected
-                            </Badge>
-                          ) : investor.paymentStatus === "NOT_STARTED" ? (
-                            <Badge variant="outline" className="text-gray-500">
-                              Not Started
-                            </Badge>
-                          ) : investor.paymentPlan === "INSTALLMENT" ? (
-                            <Badge
-                              variant="outline"
-                              className="bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
-                            >
-                              Installment ({investor.remainingPayments} left)
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline">Full Payment</Badge>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {paginatedInvestors.map((investor) => {
+                      // Parse the onboarding status for this investor
+                      const onboardingStatus = parseOnboardingStatus(investor)
+
+                      return (
+                        <TableRow
+                          key={investor.id}
+                          className={`cursor-pointer ${selectedInvestor?.id === investor.id ? "bg-muted" : ""}`}
+                          onClick={() => handleInvestorClick(investor)}
+                        >
+                          <TableCell className="font-medium">{investor.name}</TableCell>
+                          <TableCell>
+                            {/* Use onboarding status for investment if available */}
+                            {onboardingStatus && onboardingStatus.investment
+                              ? getOnboardingStatusBadge(onboardingStatus.investment, "investment")
+                              : getStatusBadge(investor.paymentStatus)}
+                          </TableCell>
+                          <TableCell>
+                            {/* Show payment plan properly */}
+                            {investor.paymentPlan ? (
+                              <Badge
+                                variant="outline"
+                                className={
+                                  investor.paymentPlan === "INSTALLMENT"
+                                    ? "bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                                    : "bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                                }
+                              >
+                                {investor.paymentPlan === "INSTALLMENT"
+                                  ? `Installment ${investor.remainingPayments ? `(${investor.remainingPayments} left)` : ""}`
+                                  : "Full Payment"}
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-gray-500">
+                                Not Selected
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                              {investor.loginCount}
+                          </TableCell>
+                          <TableCell>
+                            {investor.lastLogin ? new Date(investor.lastLogin).toLocaleString() : "Never logged in"}
+                          </TableCell>
+
+                        </TableRow>
+                      )
+                    })}
                   </TableBody>
                 </Table>
               </div>
@@ -533,8 +647,8 @@ export default function InvestorsPage() {
           </Card>
         </div>
 
-        {/* Right Panel - Investor Details - aligned with left panel */}
-        <div className="flex-1 flex flex-col">
+        {/* Right Panel - Investor Details - 60% width */}
+        <div className="w-[60%] flex flex-col">
           {selectedInvestor ? (
             <Card className="h-[calc(100vh-12rem-2px)] overflow-hidden">
               <div className="h-full overflow-auto pb-4">
@@ -656,15 +770,88 @@ export default function InvestorsPage() {
                     </TabsContent>
 
                     <TabsContent value="verification" className="space-y-4">
+                      {/* Fetch and display KYC documents */}
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="font-medium">KYC Status</h3>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span>Current verification status: </span>
-                              {getStatusBadge(
-                                safeGet(selectedInvestor, "kycStatus") || safeGet(selectedInvestor, "status"),
-                              )}
+                          <h3 className="text-lg font-medium">Onboarding Status</h3>
+                        </div>
+
+                        {/* Display parsed onboarding status if available */}
+                        {selectedInvestor?.testOnboardingStatus && (
+                          <div className="space-y-4 p-4 border rounded-md">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label className="text-muted-foreground">KYC Status</Label>
+                                <div className="h-10 flex items-center">
+                                  {getOnboardingStatusBadge(parseOnboardingStatus(selectedInvestor).kyc, "kyc")}
+                                </div>
+                              </div>
+                              <div>
+                                <Label className="text-muted-foreground">NDA Status</Label>
+                                <div className="h-10 flex items-center">
+                                  {getOnboardingStatusBadge(parseOnboardingStatus(selectedInvestor).nda, "nda")}
+                                </div>
+                              </div>
+                              <div>
+                                <Label className="text-muted-foreground">Contract Status</Label>
+                                <div className="h-10 flex items-center">
+                                  {getOnboardingStatusBadge(
+                                    parseOnboardingStatus(selectedInvestor).contract,
+                                    "contract",
+                                  )}
+                                </div>
+                              </div>
+                              <div>
+                                <Label className="text-muted-foreground">Investment Status</Label>
+                                <div className="h-10 flex items-center">
+                                  {getOnboardingStatusBadge(
+                                    parseOnboardingStatus(selectedInvestor).investment,
+                                    "investment",
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="pt-4 border-t">
+                              <Label className="text-muted-foreground mb-2 block">Onboarding Progress</Label>
+                              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                                {(() => {
+                                  const status = parseOnboardingStatus(selectedInvestor)
+                                  let progress = 0
+
+                                  if (status.kyc === "submitted") progress += 25
+                                  if (status.nda === "signed") progress += 25
+                                  if (status.contract === "signed") progress += 25
+                                  if (["completed", "agreement_signed"].includes(status.investment)) progress += 25
+
+                                  return (
+                                    <div
+                                      className="h-full bg-primary rounded-full"
+                                      style={{ width: `${progress}%` }}
+                                    ></div>
+                                  )
+                                })()}
+                              </div>
+                              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                                <span>KYC</span>
+                                <span>NDA</span>
+                                <span>Contract</span>
+                                <span>Investment</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <h3 className="text-lg font-medium mt-6">Identity Verification</h3>
+                        {/* Identity verification actions */}
+                        <div className="flex flex-col gap-4 p-4 border rounded-md">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">KYC Status</h4>
+                              <p className="text-sm text-muted-foreground">Verify investor's identity documents</p>
+                            </div>
+                            <div className="h-10 flex items-center">
+                              {selectedInvestor.kycStatus ? getStatusBadge(selectedInvestor.kycStatus) : "N/A"}
                             </div>
                           </div>
                           {safeGet(selectedInvestor, "status") === "PENDING" && (
@@ -975,7 +1162,7 @@ export default function InvestorsPage() {
         </DialogContent>
       </Dialog>
       <Dialog open={documentPreviewOpen} onOpenChange={setDocumentPreviewOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-[700px] w-[90vw]">
           <DialogHeader>
             <DialogTitle>{selectedDocument?.name}</DialogTitle>
             <DialogDescription>
@@ -983,7 +1170,7 @@ export default function InvestorsPage() {
               {selectedDocument?.date || selectedDocument?.created_at || "N/A"}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">{getDocumentViewComponent(selectedDocument)}</div>
+          <div className="py-4 max-h-[65vh] overflow-auto">{getDocumentViewComponent(selectedDocument)}</div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDocumentPreviewOpen(false)}>
               Close

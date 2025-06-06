@@ -123,13 +123,11 @@ export default function KYCPage() {
 
       // Try to make API call to submit KYC data, but handle errors gracefully
       try {
-        const response = await fetch(
-          "https://api.fundcrane.com/investors/kyc/submit",
-          {
-            method: "POST",
-            body: formData,
-          },
-        )
+        const response = await fetch("https://api.fundcrane.com/investors/kyc/submit", {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        })
 
         // Check if response is OK and is JSON
         if (response.ok) {

@@ -60,6 +60,7 @@ export default function InvitesPage() {
       // Simulate API call - in production, this would be a real fetch request
       const response = await fetch("https://api.fundcrane.com/generate-invite", {
         method: "POST", // Corrected syntax: options object with method as string
+        credentials: "include",
       })
       const data = await response.json()
 

@@ -10,7 +10,9 @@ import { loadStripe } from "@stripe/stripe-js"
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js"
 
 // Use your actual publishable key from environment variable
-const stripePromise = loadStripe('pk_test_51R4iYXPTVKsC214hgGS7Hy5x3Nhubrv7DWMAUfihEeWOP0c1fAzV0dO8iK3Lmt16Rlsa81zVAs5t75XKUVeayUdh00jnKZ0OsV')
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+)
 
 interface CreditCardFormProps {
   amount: number
@@ -75,8 +77,8 @@ function CreditCardFormContent({
       }
 
       // Validate amount for installment plans
-      if (isInstallment && amount < 1000) {
-        setErrorMessage("Minimum installment amount is $1,000")
+      if (isInstallment && amount < 5000) {
+        setErrorMessage("Minimum installment amount is $5,000")
         setIsProcessing(false)
         return
       }
@@ -97,6 +99,7 @@ function CreditCardFormContent({
         const productResponse = await fetch("https://api.fundcrane.com/payments/create-subscription-product", {
           method: "POST",
           body: productFormData,
+          credentials: "include",
         })
 
         if (!productResponse.ok) {
@@ -117,6 +120,7 @@ function CreditCardFormContent({
         const subscriptionResponse = await fetch("https://api.fundcrane.com/payments/create-subscription", {
           method: "POST",
           body: subscriptionFormData,
+          credentials: "include",
         })
 
         if (!subscriptionResponse.ok) {
@@ -159,6 +163,7 @@ function CreditCardFormContent({
         const response = await fetch("https://api.fundcrane.com/payments/create-payment-intent", {
           method: "POST",
           body: paymentFormData,
+          credentials: "include",
         })
 
         if (!response.ok) {
@@ -219,12 +224,13 @@ function CreditCardFormContent({
                   className="pl-8"
                   value={amount}
                   onChange={(e) => setAmount(Number(e.target.value))}
-                  min={1000}
+                  min={5000}
                   step={100}
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                Minimum investment: $1,000. First monthly payment will be ${calculateMonthlyPayment().toLocaleString()}
+                Minimum investment: SGD $5,000. First monthly payment will be $
+                {calculateMonthlyPayment().toLocaleString()}
               </p>
             </div>
           )}

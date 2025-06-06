@@ -6,7 +6,13 @@
  */
 
 // Ensure this is set in your Vercel environment variables
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+console.log("Environment variables check:", {
+  API_BASE_URL_ENV: process.env.NEXT_PUBLIC_API_BASE_URL,
+  NODE_ENV: process.env.NODE_ENV,
+})
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:4242"
+console.log("Using API base URL:", API_BASE_URL)
 
 // Convert snake_case to camelCase
 function toCamelCase(data: any): any {
@@ -22,6 +28,13 @@ function toCamelCase(data: any): any {
     (acc, key) => {
       // Convert key from snake_case to camelCase
       const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+
+      // Special handling for test_onboarding_status if it's a JSON string
+      if (key === "test_onboarding_status") {
+        // Keep the original field value - don't recursively process JSON strings
+        acc[camelKey] = data[key]
+        return acc
+      }
 
       // Convert value recursively if it's an object or array
       const value = data[key]

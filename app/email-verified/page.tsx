@@ -32,7 +32,7 @@ export default function EmailVerifiedPage() {
   }, [toast])
 
   const handleReturnToLogin = () => {
-    router.push("/login")
+    router.push("/auth/login")
   }
 
   return (

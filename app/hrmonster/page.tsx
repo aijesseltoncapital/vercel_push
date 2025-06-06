@@ -32,7 +32,7 @@ export default function HRMonsterHome() {
         </p>
 
         <div className="w-full max-w-md">
-          <Link href="/login" className="w-full">
+          <Link href="/auth/login" className="w-full">
             <Button size="lg" className="w-full">
               Invest in SAFE Note
             </Button>

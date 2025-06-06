@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useContext, useState, useEffect, useCallback } from "react"
 import { useRouter, usePathname } from "next/navigation"
 
 type OnboardingStatus = {
@@ -33,6 +33,12 @@ type AuthContextType = {
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>
   updateUserOnboardingStatus: (status: Partial<OnboardingStatus>) => void
   updatePaymentOption: (option: "full" | "installment", amount: number) => Promise<void>
+  fetchOnboardingStatus: (email: string) => Promise<{
+    // <--- ADD THIS TYPE DEFINITION
+    success: boolean
+    onboardingStatus?: OnboardingStatus // Use optional based on your function's return type
+    error?: string // Use optional based on your function's return type
+  }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -70,8 +76,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!loading) {
       const publicPaths = [
         "/",
-        "/login",
-        "/signup",
+        "/auth/login",
+        "/auth/signup",
         "/invite",
         "/forgot-password",
         "/reset-password",
@@ -79,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         "/email-verified",
         "/verify-email",
         "/verification-failed",
+        "/hrmonster", // Add /hrmonster to the public paths
       ]
       const isPublicPath = publicPaths.some(
         (path) =>
@@ -89,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       )
 
       if (!user && !isPublicPath) {
-        router.push("/login")
+        router.push("/auth/login")
       }
 
       if (user) {
@@ -110,7 +117,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           router.push("/admin/dashboard")
         }
 
-        console.log(user.kycStatus)
         // Onboarding flow redirects for investor
         if (user.role === "investor" && !user.onboardingComplete) {
           // If user is on a protected page but hasn't completed onboarding
@@ -143,15 +149,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const timeoutId = setTimeout(() => controller.abort(), 1000) // 10 second timeout
 
       // Make API call to the onboarding status endpoint
-      const response = await fetch(
-        "https://api.fundcrane.com/investors/onboarding_status",
-        {
-          method: "POST",
-          body: formData,
-          credentials: "include",
-          signal: controller.signal,
-        },
-      ).catch((err) => {
+      const response = await fetch("https://api.fundcrane.com/investors/onboarding_status", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+        signal: controller.signal,
+      }).catch((err) => {
         console.error("Onboarding status fetch error:", err)
         throw new Error("Network error: Unable to connect to the server")
       })
@@ -207,11 +210,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return status.kyc === "submitted" && status.nda === "signed" && status.contract === "signed"
   }
 
-  const updatePaymentOption = async (option: "full" | "installment", amount: number) => {
+  // New function to fetch investment amount from the API
+  const fetchInvestmentAmount = useCallback(async (email: string) => {
+    try {
+      // Create FormData with email
+      const formData = new FormData()
+      formData.append("email", email)
+
+      // Add timeout to the fetch call
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 1000) // 10 second timeout
+
+      // Make API call to the onboarding status endpoint
+      const response = await fetch(
+        "https://api.fundcrane.com/investors/investment_amount",
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+          signal: controller.signal,
+        },
+      ).catch((err) => {
+        console.error("Investment amount fetch error:", err)
+        throw new Error("Network error: Unable to connect to the server")
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to fetch investment amount")
+      }
+
+      const data = await response.json()
+      console.log(data)
+
+      // Return the onboarding status data
+      return {
+        success: true,
+        investmentAmount: data.investmentAmount,
+      }
+    } catch (error: any) {
+      console.error("Fetch investment amount error:", error)
+      return {
+        success: false,
+        error: error.message || "Failed to fetch onboarding status",
+      }
+    }
+  }, [])
+
+  const updateInvestmentAmount = useCallback((amount: number) => {
     if (user) {
       const updatedUser = {
         ...user,
-        paymentOption: option,
         investmentAmount: amount,
       }
       setUser(updatedUser)
@@ -219,6 +270,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("user", JSON.stringify(updatedUser))
       } catch (e) {
         console.error("Failed to save user to localStorage:", e)
+      }
+    }
+  }, [])
+
+  const updatePaymentOption = async (option: "full" | "installment", amount: number) => {
+    if (user) {
+      try {
+        setLoading(true)
+
+        // First update the local user state
+        const updatedUser = {
+          ...user,
+          paymentOption: option,
+          investmentAmount: amount,
+        }
+
+        // Try to update the database via API
+        if (user.id) {
+          try {
+            // Import the API functions
+            const { fetchInvestorData, updateInvestorPaymentOption } = await import("@/lib/api-service")
+
+            // First get the investor ID by querying with the user ID
+            const investorData = await fetchInvestorData(user.id, true).catch((err) => {
+              console.error("Failed to fetch investor data:", err)
+              return null
+            })
+
+            if (investorData && investorData.data && investorData.data.id) {
+              // Use the actual investor ID for the update
+              const investorId = investorData.data.id
+              console.log("Found investor ID:", investorId)
+
+              // Call API with the investor ID
+              await updateInvestorPaymentOption(user.id, option, amount, investorId)
+              console.log("Successfully updated payment option in database for investor ID:", investorId)
+            } else {
+              // Fallback to using user ID with query parameter
+              await updateInvestorPaymentOption(user.id, option, amount)
+              console.log("Used user ID for payment option update (no investor ID found)")
+            }
+          } catch (apiError) {
+            console.error("Failed to update payment option in database:", apiError)
+            // Still allow the local update even if the API call fails
+          }
+        }
+
+        // Update local state
+        setUser(updatedUser)
+        try {
+          localStorage.setItem("user", JSON.stringify(updatedUser))
+        } catch (e) {
+          console.error("Failed to save user to localStorage:", e)
+        }
+      } finally {
+        setLoading(false)
       }
     }
   }
@@ -541,6 +648,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Update the logout function to use the API route
   const logout = async () => {
+    // Redirect to login page with a logout parameter
+    router.push("/auth/login?logout=true")
+
     // Clear user state
     setUser(null)
 
@@ -571,15 +681,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Call our server-side logout API to clear httpOnly cookies
     try {
-      await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include", // Include cookies in the request
-      }).catch((error) => {
-        console.error("API logout failed:", error)
-      })
+      //await fetch("/api/logout", {
+      //  method: "POST",
+      //  credentials: "include", // Include cookies in the request
+      //}).catch((error) => {
+      //  console.error("API logout failed:", error)
+      //})
 
       // Also try the external API if it exists
-      fetch("https://api.fundcrane.com/logout", {
+      await fetch("https://api.fundcrane.com/logout", {
         method: "POST",
         credentials: "include",
       }).catch((error) => {
@@ -588,9 +698,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       console.error("Failed to call logout API:", e)
     }
-
-    // Redirect to login page with a logout parameter
-    router.push("/login?logout=true")
   }
 
   return (
@@ -605,6 +712,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         forgotPassword,
         updateUserOnboardingStatus,
         updatePaymentOption,
+        fetchOnboardingStatus,
+        updateInvestmentAmount,
+        fetchInvestmentAmount
       }}
     >
       {children}

@@ -4,7 +4,6 @@ import { useAuth } from "@/lib/auth-provider"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { PaymentSchedule } from "../invest/payment-schedule"
 import Link from "next/link"
 import { DocumentViewer } from "@/components/document-viewer"
 import { ExpandableSection } from "./components/expandable-section"
@@ -13,9 +12,50 @@ import { AlertCircle } from "lucide-react"
 import Image from "next/image"
 import { FundraisingFormatCard } from "@/components/fundraising-format-card"
 import { OverviewSidebar } from "./components/overview-sidebar"
+import { useEffect, useState, useCallback } from "react"
+import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 export default function ProjectPage() {
-  const { user } = useAuth()
+  const { user, fetchInvestmentAmount, updateInvestmentAmount, fetchOnboardingStatus, updateUserOnboardingStatus } =
+    useAuth()
+  const [isLoading, setIsLoading] = useState(false)
+  const [investmentAmount, setInvestmentAmount] = useState<number | null>(null)
+  const { toast } = useToast()
+  const router = useRouter()
+
+  // Fetch investment amount on component mount
+  useEffect(() => {
+    const getInvestmentAmount = async () => {
+      if (user && user.email) {
+        setIsLoading(true)
+        try {
+          console.log("Fetching investment amount for:", user.email)
+          const result = await fetchInvestmentAmount(user.email)
+          console.log("Fetch result:", result)
+
+          if (result.success && result.investmentAmount !== undefined) {
+            // Set local state for immediate UI update
+            setInvestmentAmount(result.investmentAmount)
+            console.log("Setting investment amount to:", result.investmentAmount)
+
+            // Update global user state
+            updateInvestmentAmount(result.investmentAmount)
+          }
+        } catch (error) {
+          console.error("Failed to fetch investment amount:", error)
+        } finally {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    getInvestmentAmount()
+  }, [user, fetchInvestmentAmount, updateInvestmentAmount])
+
+  // Use either the local state or user state for rendering
+  const currentInvestmentAmount = investmentAmount ?? user?.investmentAmount ?? 0
+  console.log("Current investment amount for rendering:", currentInvestmentAmount)
 
   // Mock data for the investor dashboard
   const investmentData = {
@@ -86,6 +126,56 @@ export default function ProjectPage() {
     { id: "finance", label: "Finance" },
     { id: "attachments", label: "Attachments" },
   ]
+
+  const handleInvestMore = useCallback(async () => {
+    if (!user?.email) {
+      toast({
+        title: "Error",
+        description: "User email not found.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const formData = new FormData()
+    formData.append("email", user.email)
+
+    try {
+      const response = await fetch(
+        "https://api.fundcrane.com/investors/reinvest-webhook",
+        {
+          method: "POST",
+          body: formData,
+        },
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to trigger reinvestment process")
+      }
+
+      // Fetch and update onboarding status
+      const onboardingResult = await fetchOnboardingStatus(user.email)
+      if (onboardingResult.success && onboardingResult.onboardingStatus) {
+        updateUserOnboardingStatus(onboardingResult.onboardingStatus)
+      } else {
+        toast({
+          title: "Error",
+          description: onboardingResult.error || "Failed to fetch onboarding status.",
+          variant: "destructive",
+        })
+      }
+
+      router.push("/investor/payment-options")
+    } catch (error: any) {
+      console.error("Reinvestment error:", error)
+      toast({
+        title: "Reinvestment failed",
+        description: error.message || "There was an error initiating the reinvestment process.",
+        variant: "destructive",
+      })
+    }
+  }, [user, toast, router, fetchOnboardingStatus, updateUserOnboardingStatus])
 
   return (
     <div className="flex-1 container mx-auto max-w-7xl px-4 pb-12 pt-20">
@@ -173,10 +263,10 @@ export default function ProjectPage() {
             </div>
           </div>
 
-          <div className="mt-auto pt-6">
+          <div className="mt-6">
             {user?.onboardingStatus.nda === "signed" ? (
               <Link href="/investor/payment-options">
-                <Button className="w-full">Invest Now</Button>
+                <Button className="w-full">{currentInvestmentAmount > 0 ? "Invest More" : "Invest Now"}</Button>
               </Link>
             ) : (
               <Link href="/investor/nda">
@@ -186,6 +276,27 @@ export default function ProjectPage() {
           </div>
         </div>
       </div>
+
+      {/* Thank you panel - Positioned beneath hero banner and investment detail card */}
+      {currentInvestmentAmount > 0 && (
+        <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-lg">
+          <h4 className="font-medium text-green-800 text-lg mb-2">Thank you for your investment!</h4>
+          <p className="text-green-700 mb-3">
+            Your current investment:{" "}
+            <span className="font-semibold">SGD {currentInvestmentAmount.toLocaleString()}</span>
+          </p>
+          <p className="text-green-700 mb-4">
+            You can still invest more if you'd like to increase your stake in HR Monster.
+          </p>
+          <Button
+            variant="outline"
+            className="bg-white border-green-300 text-green-700 hover:bg-green-100"
+            onClick={handleInvestMore}
+          >
+            Invest More
+          </Button>
+        </div>
+      )}
 
       {/* Main content grid - Kickstarter Style */}
       <div className="grid grid-cols-1 gap-8">
@@ -725,32 +836,6 @@ export default function ProjectPage() {
           </Tabs>
         </div>
       </div>
-
-      {/* Payment schedule for completed investments */}
-      {user?.investmentStatus === "completed" && (
-        <div className="mt-6">
-          <PaymentSchedule
-            totalAmount={25000}
-            monthlyPayment={2083.33}
-            remainingPayments={8}
-            nextPaymentDate="March 21, 2025"
-            paymentHistory={[
-              { date: "March 21, 2025", amount: 2083.33, status: "pending" },
-              { date: "April 21, 2025", amount: 2083.33, status: "upcoming" },
-              { date: "May 21, 2025", amount: 2083.33, status: "upcoming" },
-              { date: "June 21, 2025", amount: 2083.33, status: "upcoming" },
-              { date: "July 21, 2025", amount: 2083.33, status: "upcoming" },
-              { date: "August 21, 2025", amount: 2083.33, status: "upcoming" },
-              { date: "September 21, 2025", amount: 2083.33, status: "upcoming" },
-              { date: "October 21, 2025", amount: 2083.33, status: "upcoming" },
-              { date: "November 21, 2025", amount: 2083.33, status: "upcoming" },
-              { date: "December 21, 2025", amount: 2083.33, status: "upcoming" },
-              { date: "January 21, 2026", amount: 2083.33, status: "upcoming" },
-              { date: "February 21, 2026", amount: 2083.33, status: "upcoming" },
-            ]}
-          />
-        </div>
-      )}
     </div>
   )
 }

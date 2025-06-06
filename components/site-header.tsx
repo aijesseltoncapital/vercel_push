@@ -9,29 +9,85 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { CheckCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useState } from "react"
 
 export function SiteHeader() {
+  const pathname = usePathname()
+  const isDashboard = pathname === "/investor/dashboard"
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const closeMobileMenu = () => setMobileMenuOpen(false)
+
   return (
     <header className="fixed top-0 z-[100] w-full border-b bg-background shadow-sm">
       <div className="container mx-auto flex h-20 items-center justify-between px-4 sm:px-8">
         <div className="flex items-center">
-          <Link href="/" className="font-bold text-xl">
+          <Link href="/hrmonster" className="font-bold text-xl">
             HR Monster
           </Link>
-          <StepNav className="ml-8" />
+          {isDashboard && (
+            <Link
+              href="/investor/project"
+              className="ml-4 flex items-center text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-1"
+              >
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+              Project Details
+            </Link>
+          )}
+          <div className="hidden md:block">
+            <StepNav className="ml-8" />
+          </div>
+          <button
+            className="ml-4 md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {mobileMenuOpen ? <path d="M18 6 6 18M6 6l12 12" /> : <path d="M4 12h16M4 6h16M4 18h16" />}
+            </svg>
+          </button>
         </div>
         <div className="flex items-center space-x-6">
           <ModeToggle />
           <UserNav />
         </div>
       </div>
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-background border-t py-4 px-4 sm:px-8 shadow-md">
+          <StepNav onStepClick={closeMobileMenu} />
+        </div>
+      )}
     </header>
   )
 }
 
 // Update the StepNav component to have independent highlighting for each step
 
-function StepNav({ className }: { className?: string }) {
+function StepNav({ className, onStepClick }: { className?: string; onStepClick?: () => void }) {
   const { user } = useAuth()
   const pathname = usePathname()
   const isInvestor = user?.role === "investor"
@@ -73,15 +129,16 @@ function StepNav({ className }: { className?: string }) {
   const ndaCompleted = user.onboardingStatus.nda === "signed"
   const paymentOptionSelected = !!user.paymentOption
   const contractsCompleted = user.onboardingStatus.contract === "signed"
+  const paymentCompleted = user.paymentStatus === "completed"
 
   return (
     <div className={cn("flex items-center", className)}>
-      <div className="flex items-center">
+      <div className="grid grid-cols-3 md:flex items-center w-full md:w-auto gap-4 md:gap-0">
         {/* Step 1: KYC */}
         <Link
           href="/investor/kyc"
           className={cn(
-            "flex flex-col items-center",
+            "flex flex-col items-center justify-center",
             currentStep === 1 ? "text-primary" : kycCompleted ? "text-green-500" : "text-muted-foreground",
           )}
           onClick={(e) => {
@@ -92,6 +149,8 @@ function StepNav({ className }: { className?: string }) {
                 description: "You must complete KYC verification before signing the NDA",
                 variant: "destructive",
               })
+            } else if (onStepClick) {
+              onStepClick()
             }
           }}
         >
@@ -113,13 +172,13 @@ function StepNav({ className }: { className?: string }) {
         </Link>
 
         {/* Connector line */}
-        <div className={cn("w-8 h-0.5 mx-1", kycCompleted ? "bg-green-500" : "bg-muted")} />
+        <div className={cn("hidden md:block w-8 h-0.5 mx-1", kycCompleted ? "bg-green-500" : "bg-muted")} />
 
         {/* Step 2: NDA */}
         <Link
           href="/investor/nda"
           className={cn(
-            "flex flex-col items-center",
+            "flex flex-col items-center justify-center",
             currentStep === 2 ? "text-primary" : ndaCompleted ? "text-green-500" : "text-muted-foreground",
           )}
           onClick={(e) => {
@@ -130,6 +189,8 @@ function StepNav({ className }: { className?: string }) {
                 description: "You must sign the NDA before viewing project details",
                 variant: "destructive",
               })
+            } else if (onStepClick) {
+              onStepClick()
             }
           }}
         >
@@ -151,12 +212,15 @@ function StepNav({ className }: { className?: string }) {
         </Link>
 
         {/* Connector line */}
-        <div className={cn("w-8 h-0.5 mx-1", ndaCompleted ? "bg-green-500" : "bg-muted")} />
+        <div className={cn("hidden md:block w-8 h-0.5 mx-1", ndaCompleted ? "bg-green-500" : "bg-muted")} />
 
         {/* Step 3: Project */}
         <Link
           href="/investor/project"
-          className={cn("flex flex-col items-center", currentStep === 3 ? "text-primary" : "text-muted-foreground")}
+          className={cn(
+            "flex flex-col items-center justify-center",
+            currentStep === 3 ? "text-primary" : ndaCompleted ? "text-green-500" : "text-muted-foreground",
+          )}
           onClick={(e) => {
             if (!ndaCompleted) {
               e.preventDefault()
@@ -165,6 +229,8 @@ function StepNav({ className }: { className?: string }) {
                 description: "You must sign the NDA before viewing project details",
                 variant: "destructive",
               })
+            } else if (onStepClick) {
+              onStepClick()
             }
           }}
         >
@@ -172,25 +238,35 @@ function StepNav({ className }: { className?: string }) {
             <div
               className={cn(
                 "h-8 w-8 rounded-full flex items-center justify-center border-2",
-                currentStep === 3 ? "border-primary bg-primary/10" : "border-muted-foreground",
+                currentStep === 3
+                  ? "border-primary bg-primary/10"
+                  : ndaCompleted
+                    ? "border-green-500 bg-green-100"
+                    : "border-muted-foreground",
               )}
             >
-              <span className={cn("text-sm font-medium", currentStep === 3 ? "text-primary" : "text-muted-foreground")}>
-                3
-              </span>
+              {ndaCompleted ? (
+                <CheckCircle className="h-4 w-4" />
+              ) : (
+                <span
+                  className={cn("text-sm font-medium", currentStep === 3 ? "text-primary" : "text-muted-foreground")}
+                >
+                  3
+                </span>
+              )}
             </div>
           </div>
           <span className="text-xs mt-1">Project</span>
         </Link>
 
         {/* Connector line */}
-        <div className={cn("w-8 h-0.5 mx-1", "bg-muted")} />
+        <div className={cn("hidden md:block w-8 h-0.5 mx-1", ndaCompleted ? "bg-green-500" : "bg-muted")} />
 
         {/* Step 4: Payment Options */}
         <Link
           href="/investor/payment-options"
           className={cn(
-            "flex flex-col items-center",
+            "flex flex-col items-center justify-center",
             currentStep === 4 ? "text-primary" : paymentOptionSelected ? "text-green-500" : "text-muted-foreground",
           )}
           onClick={(e) => {
@@ -201,6 +277,8 @@ function StepNav({ className }: { className?: string }) {
                 description: "You must sign the NDA before selecting payment options",
                 variant: "destructive",
               })
+            } else if (onStepClick) {
+              onStepClick()
             }
           }}
         >
@@ -226,13 +304,13 @@ function StepNav({ className }: { className?: string }) {
         </Link>
 
         {/* Connector line */}
-        <div className={cn("w-8 h-0.5 mx-1", paymentOptionSelected ? "bg-green-500" : "bg-muted")} />
+        <div className={cn("hidden md:block w-8 h-0.5 mx-1", paymentOptionSelected ? "bg-green-500" : "bg-muted")} />
 
         {/* Step 5: Contracts */}
         <Link
           href="/investor/contracts"
           className={cn(
-            "flex flex-col items-center",
+            "flex flex-col items-center justify-center",
             currentStep === 5 ? "text-primary" : contractsCompleted ? "text-green-500" : "text-muted-foreground",
           )}
           onClick={(e) => {
@@ -243,6 +321,8 @@ function StepNav({ className }: { className?: string }) {
                 description: "You must select a payment option before proceeding to contracts",
                 variant: "destructive",
               })
+            } else if (onStepClick) {
+              onStepClick()
             }
           }}
         >
@@ -268,12 +348,15 @@ function StepNav({ className }: { className?: string }) {
         </Link>
 
         {/* Connector line */}
-        <div className="w-8 h-0.5 mx-1 bg-muted" />
+        <div className={cn("hidden md:block w-8 h-0.5 mx-1", paymentCompleted ? "bg-green-500" : "bg-muted")} />
 
         {/* Step 6: Invest/Payment */}
         <Link
           href="/investor/invest"
-          className={cn("flex flex-col items-center", currentStep === 6 ? "text-primary" : "text-muted-foreground")}
+          className={cn(
+            "flex flex-col items-center justify-center",
+            currentStep === 6 ? "text-primary" : paymentCompleted ? "text-green-500" : "text-muted-foreground",
+          )}
           onClick={(e) => {
             if (!contractsCompleted) {
               e.preventDefault()
@@ -282,6 +365,8 @@ function StepNav({ className }: { className?: string }) {
                 description: "You must sign all contracts before proceeding to payment",
                 variant: "destructive",
               })
+            } else if (onStepClick) {
+              onStepClick()
             }
           }}
         >
@@ -289,12 +374,22 @@ function StepNav({ className }: { className?: string }) {
             <div
               className={cn(
                 "h-8 w-8 rounded-full flex items-center justify-center border-2",
-                currentStep === 6 ? "border-primary bg-primary/10" : "border-muted-foreground",
+                currentStep === 6
+                  ? "border-primary bg-primary/10"
+                  : paymentCompleted
+                    ? "border-green-500 bg-green-100"
+                    : "border-muted-foreground",
               )}
             >
-              <span className={cn("text-sm font-medium", currentStep === 6 ? "text-primary" : "text-muted-foreground")}>
-                6
-              </span>
+              {paymentCompleted ? (
+                <CheckCircle className="h-4 w-4" />
+              ) : (
+                <span
+                  className={cn("text-sm font-medium", currentStep === 6 ? "text-primary" : "text-muted-foreground")}
+                >
+                  6
+                </span>
+              )}
             </div>
             {!contractsCompleted && <div className="absolute -top-1 -right-1 h-3 w-3 bg-amber-500 rounded-full"></div>}
           </div>

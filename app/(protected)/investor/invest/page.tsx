@@ -110,10 +110,18 @@ export default function InvestPage() {
 
     // In a real app, this would process the payment
     setTimeout(() => {
-      toast({
-        title: "Investment completed",
-        description: "Your investment has been processed successfully",
-      })
+      if (paymentMethod === "bankTransfer") {
+        toast({
+          title: "Investment completed",
+          description:
+            "Your investment has been processed successfully. We will verify the transaction shortly and notify you via email once it's confirmed.",
+        })
+      } else {
+        toast({
+          title: "Investment completed",
+          description: "Your investment has been processed successfully",
+        })
+      }
 
       // Redirect to dashboard after a delay
       setTimeout(() => {
@@ -276,7 +284,7 @@ export default function InvestPage() {
 
           {paymentMethod === "creditCard" && (
             <CreditCardForm
-              amount={paymentPlan === "installment" ? calculateMonthlyPayment() : investmentAmount}
+              amount={investmentAmount}
               isInstallment={paymentPlan === "installment"}
               onPaymentComplete={() => {
                 toast({
@@ -346,8 +354,12 @@ export default function InvestPage() {
             </div>
           )}
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={() => router.push("/investor/contracts")}>
+        <CardFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:justify-between w-full">
+          <Button
+            variant="outline"
+            onClick={() => router.push("/investor/contracts")}
+            className="text-xs sm:text-sm w-full sm:w-auto"
+          >
             Back to Contracts
           </Button>
           <Button
@@ -357,10 +369,11 @@ export default function InvestPage() {
               (paymentMethod === "bankTransfer" && !receiptUploaded) ||
               isSubmitting
             }
+            className="text-xs sm:text-sm w-full sm:w-auto"
           >
             {isSubmitting ? (
               <>
-                <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"></span>
+                <span className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"></span>
                 Processing...
               </>
             ) : (

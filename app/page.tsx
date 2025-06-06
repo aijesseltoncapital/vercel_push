@@ -31,7 +31,7 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md mx-auto">
-          <Link href="/signup" className="w-full">
+          <Link href="/auth/signup" className="w-full">
             <Button size="lg" className="w-full">
               Get Started
             </Button>

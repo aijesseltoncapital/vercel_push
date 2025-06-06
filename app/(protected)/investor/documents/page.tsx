@@ -236,10 +236,12 @@ export default function DocumentsPage() {
                           <Eye className="h-4 w-4" />
                           <span className="sr-only">View</span>
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDownload(document)}>
-                          <Download className="h-4 w-4" />
-                          <span className="sr-only">Download</span>
-                        </Button>
+                        {document.id !== 1 && (
+                          <Button variant="ghost" size="sm" onClick={() => handleDownload(document)}>
+                            <Download className="h-4 w-4" />
+                            <span className="sr-only">Download</span>
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -289,10 +291,12 @@ export default function DocumentsPage() {
             <Button variant="outline" onClick={() => setPreviewOpen(false)}>
               Close
             </Button>
-            <Button onClick={() => selectedDocument && handleDownload(selectedDocument)}>
-              <Download className="mr-2 h-4 w-4" />
-              Download
-            </Button>
+            {selectedDocument && selectedDocument.id !== 1 && (
+              <Button onClick={() => selectedDocument && handleDownload(selectedDocument)}>
+                <Download className="mr-2 h-4 w-4" />
+                Download
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
